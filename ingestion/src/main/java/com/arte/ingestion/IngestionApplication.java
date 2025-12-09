@@ -1,12 +1,13 @@
-package com.arte.apigateway;
+package com.arte.ingestion;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ApiGatewayApplication {
+public class IngestionApplication {
+
     public static void main(String[] args) {
-        SpringApplication.run(ApiGatewayApplication.class, args);
+        SpringApplication.run(IngestionApplication.class, args);
     }
 
 }
