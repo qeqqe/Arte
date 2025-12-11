@@ -1,6 +1,7 @@
 package com.arte.apicore.service.auth.strategy;
 
-import jakarta.servlet.ServletException;
+import com.arte.apicore.entity.Users;
+import com.arte.apicore.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
@@ -14,22 +15,26 @@ import java.io.IOException;
 @Component
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtTokenProvider tokenProvider;
 
-    public OAuth2LoginSuccessHandler(JwtTokenProvider jwtTokenProvider) {
-        this.jwtTokenProvider = jwtTokenProvider;
+    private final UserService userService;
+
+    public OAuth2LoginSuccessHandler(JwtTokenProvider tokenProvider, UserService userService) {
+        this.tokenProvider = tokenProvider;
+        this.userService = userService;
     }
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
-                                        Authentication authentication) throws IOException, ServletException {
-        OAuth2User  oAuth2User = (OAuth2User) authentication.getPrincipal();
+                                        Authentication authentication) throws IOException {
+        OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
 
-        String username = oAuth2User.getAttribute("login");
-        String email = oAuth2User.getAttribute("email");
+        String githubUsername = oauth2User.getAttribute("login");
 
-        String jwtToken = jwtTokenProvider.generateToken(username, email);
+        Users user = userService.getCurrentUser(githubUsername);
+
+        String jwtToken = tokenProvider.generateToken(user.getGithubUsername(), user.getEmail());
 
         response.sendRedirect("http://localhost:3000/oauth/callback?token=" + jwtToken);
     }

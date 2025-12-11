@@ -19,6 +19,10 @@ spring.security.oauth2.client.registration.github=
 spring.security.oauth2.client.registration.client-secret=
 spring.security.oauth2.client.registration.scope=user:email,read:user,public_repo
 
+jwt.secret=whateverthehell
+jwt.expiration=86400000
+
+
 management.endpoint.health.show-details=always
 
 logging.pattern.level="%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"

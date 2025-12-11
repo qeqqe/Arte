@@ -1,6 +1,7 @@
 package com.arte.apicore.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -8,6 +9,8 @@ import java.util.UUID;
 @SuppressWarnings("JpaDataSourceORMInspection")
 @Entity
 @Table(name = "users")
+@Getter
+@Setter
 public class Users {
 
     @Id
@@ -28,5 +31,20 @@ public class Users {
     private Instant createdAt;
 
     protected Users() {}
+
+    public Users(String email, String githubUsername, String githubToken) {
+        this.email = email;
+        this.githubUsername = githubUsername;
+        this.githubToken = githubToken;
+    }
+
+    public UUID getId() { return id; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getGithubUsername() { return githubUsername; }
+    public void setGithubUsername(String githubUsername) { this.githubUsername = githubUsername; }
+    public String getGithubToken() { return githubToken; }
+    public void setGithubToken(String githubToken) { this.githubToken = githubToken; }
+    public Instant getCreatedAt() { return createdAt; }
 }
 
