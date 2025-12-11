@@ -1,8 +1,7 @@
 spring.application.name=api-core
 server.port=8082
 
-
-spring.datasource.url=jdbc:postgresql://localhost:5432/arte
+spring.datasource.url=jdbc:postgresql://localhost:5432/arte  # or wherever your db is
 spring.datasource.username=test
 spring.datasource.password=test
 spring.datasource.driver-class-name=org.postgresql.Driver
@@ -13,9 +12,12 @@ spring.flyway.enabled=true
 spring.flyway.locations=classpath:db/migration
 spring.jpa.hibernate.ddl-auto=none
 
-#logging.level.org.flywaydb=DEBUG
+logging.level.org.flywaydb=DEBUG
 
 
+spring.security.oauth2.client.registration.github=
+spring.security.oauth2.client.registration.client-secret=
+spring.security.oauth2.client.registration.scope=user:email,read:user,public_repo
 
 management.endpoint.health.show-details=always
 
