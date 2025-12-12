@@ -1,6 +1,7 @@
 package com.arte.apicore.service.auth.strategy;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,20 +13,38 @@ import java.util.Date;
 
 @Component
 public class JwtTokenProvider {
-    private final SecretKey key;
-    private final long expiresAt;
 
-    public JwtTokenProvider(@Value("${jwt.secret}") String secret, @Value("${jwt.expiration}") long expiresAt) {
+    private final SecretKey key;
+    private final long accessTokenExpiration;
+    private final long refreshTokenExpiration;
+
+    public JwtTokenProvider(
+            @Value("${jwt.secret}") String secret,
+            @Value("${jwt.access-token-expiration:14400000}") long accessTokenExpiration,
+            @Value("${jwt.refresh-token-expiration:604800000}") long refreshTokenExpiration) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        this.expiresAt = expiresAt;
+        this.accessTokenExpiration = accessTokenExpiration;
+        this.refreshTokenExpiration = refreshTokenExpiration;
     }
 
-    public String generateToken(String username, String email) {
+    public String generateAccessToken(String username, String email) {
         return Jwts.builder()
                 .subject(username)
                 .claim("email", email)
+                .claim("type", "access")
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiresAt))
+                .expiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
+                .signWith(key)
+                .compact();
+    }
+
+    public String generateRefreshToken(String username, String email) {
+        return Jwts.builder()
+                .subject(username)
+                .claim("email", email)
+                .claim("type", "refresh")
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
                 .signWith(key)
                 .compact();
     }
@@ -36,5 +55,27 @@ public class JwtTokenProvider {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+    }
+
+    public boolean isValidAccessToken(String token) {
+        try {
+            Claims claims = validateToken(token);
+            return "access".equals(claims.get("type", String.class));
+        } catch (JwtException e) {
+            return false;
+        }
+    }
+
+    public boolean isValidRefreshToken(String token) {
+        try {
+            Claims claims = validateToken(token);
+            return "refresh".equals(claims.get("type", String.class));
+        } catch (JwtException e) {
+            return false;
+        }
+    }
+
+    public long getAccessTokenExpiration() {
+        return accessTokenExpiration;
     }
 }

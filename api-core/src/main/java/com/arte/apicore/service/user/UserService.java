@@ -1,12 +1,12 @@
 package com.arte.apicore.service.user;
 
 import com.arte.apicore.entity.Users;
+import com.arte.apicore.exception.UserNotFoundException;
 import com.arte.apicore.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 import java.util.UUID;
-
 
 @Service
 public class UserService {
@@ -27,6 +27,6 @@ public class UserService {
 
     public Users getCurrentUser(String githubUsername) {
         return userRepository.findByGithubUsername(githubUsername)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + githubUsername));
     }
 }

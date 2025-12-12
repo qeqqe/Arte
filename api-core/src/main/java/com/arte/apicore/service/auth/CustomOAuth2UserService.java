@@ -25,14 +25,19 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String email = oauth2User.getAttribute("email");
         String accessToken = userRequest.getAccessToken().getTokenValue();
 
+        if (email == null || email.isEmpty()) {
+            email = githubUsername + "@users.noreply.github.com";
+        }
+
+        String finalEmail = email;
         Users user = userRepository.findByGithubUsername(githubUsername)
                 .map(existingUser -> {
-                    existingUser.setEmail(email);
+                    existingUser.setEmail(finalEmail);
                     existingUser.setGithubToken(accessToken);
                     return userRepository.save(existingUser);
                 })
                 .orElseGet(() -> {
-                    Users newUser = new Users(email, githubUsername, accessToken);
+                    Users newUser = new Users(finalEmail, githubUsername, accessToken);
                     return userRepository.save(newUser);
                 });
 
