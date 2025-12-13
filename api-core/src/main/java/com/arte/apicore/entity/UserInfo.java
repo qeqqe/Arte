@@ -16,7 +16,7 @@ public class UserInfo {
     @Column(name = "user_id")
     private UUID userId;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "user_id")
     private Users users;
