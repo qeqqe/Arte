@@ -1,4 +1,4 @@
-package com.arte.ingestion.model.github;
+package com.arte.ingestion.model;
 
 
 import lombok.AllArgsConstructor;

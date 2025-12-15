@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.arte.ingestion.grpc";
+option java_outer_classname = "ProcessingServiceProto";
+
+package processing;
+
+service ProcessingService {
+    rpc TriggerEmbeddingGeneration(TriggerRequest) returns (TriggerResponse);
+    rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+message TriggerRequest {
+    string user_id = 1;
+    string source_type = 2;                // github, leetcode, or resume
+    repeated string knowledge_base_ids = 3;
+}
+
+message TriggerResponse {
+    bool success = 1;
+    string message = 2;
+    int32 entries_queued = 3;
+}
+
+message HealthCheckRequest {
+    string service_name = 1;
+}
+
+message HealthCheckResponse {
+    bool healthy = 1;
+    string status = 2;
+    int64 timestamp = 3;
+}

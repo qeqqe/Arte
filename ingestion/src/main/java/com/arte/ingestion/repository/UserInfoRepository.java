@@ -19,8 +19,4 @@ public interface UserInfoRepository extends JpaRepository<UserInfo, UUID> {
     @Query("SELECT ui FROM UserInfo ui WHERE SIZE(ui.githubStats) > 0")
     List<UserInfo> findUsersWithGitHubData();
 
-    @Query(value = "SELECT * FROM user_info WHERE github_stats->'totalStars' > :minStars",
-            nativeQuery = true)
-    List<UserInfo> findByMinimumStars(@Param("minStars") int minStars);
-
 }

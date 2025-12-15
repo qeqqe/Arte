@@ -1,15 +1,35 @@
 spring.application.name=ingestion
 server.port=8083
 
-
+# DB
 spring.datasource.url=jdbc:postgresql://localhost:5432/arte
 spring.datasource.username=test
 spring.datasource.password=test
 spring.datasource.driver-class-name=org.postgresql.Driver
 
+# JPA
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.format_sql=true
+
+# gRPC processing service
+processing.grpc.host=localhost
+processing.grpc.port=50051
+processing.grpc.timeout-seconds=30
+
+# resume processing
+ingestion.resume.word-cap=3000
+
+# file
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB
+
+# actuator and metrics
 management.endpoints.web.exposure.include=health,metrics,prometheus
 management.prometheus.metrics.export.enabled=true
-
 management.endpoint.health.show-details=always
 
+# log
+logging.level.org.flywaydb=DEBUG
+logging.level.com.arte.ingestion=DEBUG
 logging.pattern.level="%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"

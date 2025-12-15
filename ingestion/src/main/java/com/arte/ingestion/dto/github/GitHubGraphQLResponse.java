@@ -1,6 +1,8 @@
 package com.arte.ingestion.dto.github;
 
 
+import java.util.List;
+
 public record GitHubGraphQLResponse(
         DataWrapper data
 ) {
@@ -13,6 +15,6 @@ public record GitHubGraphQLResponse(
     ) {}
 
     public record PinnedItems(
-            java.util.List<RepositoryNode> nodes
+            List<RepositoryNode> nodes
     ) {}
 }

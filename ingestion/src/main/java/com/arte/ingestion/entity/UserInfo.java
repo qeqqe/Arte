@@ -1,6 +1,10 @@
 package com.arte.ingestion.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -11,7 +15,12 @@ import java.util.UUID;
 @SuppressWarnings("JpaDataSourceORMInspection")
 @Entity
 @Table(name = "user_info")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserInfo {
+    
     @Id
     @Column(name = "user_id")
     private UUID userId;
@@ -19,7 +28,7 @@ public class UserInfo {
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "user_id")
-    private Users users;
+    private Users user;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "leetcode_stats", columnDefinition = "jsonb")
@@ -35,6 +44,4 @@ public class UserInfo {
 
     @Column(name = "last_ingested_at")
     private Instant lastIngestedAt;
-
-    protected UserInfo() {}
 }

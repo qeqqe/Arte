@@ -3,8 +3,7 @@ package com.arte.apicore.service.auth;
 import com.arte.apicore.dto.GitHubEmail;
 import com.arte.apicore.entity.Users;
 import com.arte.apicore.repository.UserRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -19,12 +18,11 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Arrays;
 
 @Service
+@Slf4j
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
     private final RestTemplate restTemplate;
-    private static final Logger log = LoggerFactory.getLogger(CustomOAuth2UserService.class);
-
 
 
     public CustomOAuth2UserService(UserRepository userRepository) {
