@@ -12,10 +12,8 @@ spring.jpa.hibernate.ddl-auto=validate
 spring.jpa.show-sql=false
 spring.jpa.properties.hibernate.format_sql=true
 
-# gRPC processing service
-processing.grpc.host=localhost
-processing.grpc.port=50051
-processing.grpc.timeout-seconds=30
+# gRPC server
+grpc.server.port=50052
 
 # resume processing
 ingestion.resume.word-cap=3000

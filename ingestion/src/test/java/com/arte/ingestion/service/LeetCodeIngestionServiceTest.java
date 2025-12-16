@@ -1,11 +1,9 @@
 package com.arte.ingestion.service;
 
 import com.arte.ingestion.client.LeetCodeGraphQLClient;
-import com.arte.ingestion.client.ProcessingServiceGrpcClient;
 import com.arte.ingestion.entity.UserInfo;
 import com.arte.ingestion.entity.UserKnowledgeBase;
 import com.arte.ingestion.entity.Users;
-import com.arte.ingestion.grpc.TriggerResponse;
 import com.arte.ingestion.repository.UserInfoRepository;
 import com.arte.ingestion.repository.UserKnowledgeBaseRepository;
 import com.arte.ingestion.repository.UserRepository;
@@ -34,8 +32,6 @@ class LeetCodeIngestionServiceTest {
     @Mock
     private LeetCodeGraphQLClient leetCodeClient;
     @Mock
-    private ProcessingServiceGrpcClient grpcClient;
-    @Mock
     private UserRepository userRepository;
     @Mock
     private UserInfoRepository userInfoRepository;
@@ -51,7 +47,6 @@ class LeetCodeIngestionServiceTest {
         objectMapper.registerModule(new JavaTimeModule());
         service = new LeetCodeIngestionService(
                 leetCodeClient,
-                grpcClient,
                 userRepository,
                 userInfoRepository,
                 knowledgeBaseRepository,
@@ -104,13 +99,10 @@ class LeetCodeIngestionServiceTest {
                     kb.setId(UUID.randomUUID());
                     return kb;
                 });
-        when(grpcClient.triggerEmbeddingGeneration(any(), anyString(), any()))
-                .thenReturn(TriggerResponse.newBuilder().setSuccess(true).build());
 
         var result = service.ingestLeetCodeData(userId, "testuser");
 
         assertThat(result.success()).isTrue();
-        verify(grpcClient).triggerEmbeddingGeneration(eq(userId), eq("leetcode"), any());
         verify(userInfoRepository).save(any(UserInfo.class));
     }
 
@@ -134,8 +126,6 @@ class LeetCodeIngestionServiceTest {
                     kb.setId(UUID.randomUUID());
                     return kb;
                 });
-        when(grpcClient.triggerEmbeddingGeneration(any(), anyString(), any()))
-                .thenReturn(TriggerResponse.newBuilder().setSuccess(true).build());
 
         var result = service.ingestLeetCodeData(userId, "testuser");
 

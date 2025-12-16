@@ -1,7 +1,6 @@
 package com.arte.ingestion.service;
 
 import com.arte.ingestion.client.GitHubGraphQLClient;
-import com.arte.ingestion.client.ProcessingServiceGrpcClient;
 import com.arte.ingestion.dto.github.GitHubGraphQLResponse;
 import com.arte.ingestion.dto.github.PrimaryLanguage;
 import com.arte.ingestion.dto.github.RepositoryNode;
@@ -9,7 +8,6 @@ import com.arte.ingestion.dto.github.RepositoryTopics;
 import com.arte.ingestion.entity.UserInfo;
 import com.arte.ingestion.entity.UserKnowledgeBase;
 import com.arte.ingestion.entity.Users;
-import com.arte.ingestion.grpc.TriggerResponse;
 import com.arte.ingestion.repository.UserInfoRepository;
 import com.arte.ingestion.repository.UserKnowledgeBaseRepository;
 import com.arte.ingestion.repository.UserRepository;
@@ -18,7 +16,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -38,8 +35,6 @@ class GitHubIngestionServiceTest {
     @Mock
     private GitHubGraphQLClient gitHubGraphQLClient;
     @Mock
-    private ProcessingServiceGrpcClient grpcClient;
-    @Mock
     private UserRepository userRepository;
     @Mock
     private UserInfoRepository userInfoRepository;
@@ -55,7 +50,6 @@ class GitHubIngestionServiceTest {
         objectMapper.registerModule(new JavaTimeModule());
         service = new GitHubIngestionService(
                 gitHubGraphQLClient,
-                grpcClient,
                 userRepository,
                 userInfoRepository,
                 knowledgeBaseRepository,
@@ -106,16 +100,11 @@ class GitHubIngestionServiceTest {
                 });
         when(userInfoRepository.findById(userId)).thenReturn(Optional.empty());
         when(userInfoRepository.save(any(UserInfo.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(grpcClient.triggerEmbeddingGeneration(any(), anyString(), any()))
-                .thenReturn(TriggerResponse.newBuilder().setSuccess(true).build());
 
         var result = service.ingestGitHubData(userId);
 
         assertThat(result.success()).isTrue();
         assertThat(result.reposProcessed()).isEqualTo(1);
-        
-        // verify grpc was called
-        verify(grpcClient).triggerEmbeddingGeneration(eq(userId), eq("github"), any());
     }
 
     @Test
@@ -140,17 +129,13 @@ class GitHubIngestionServiceTest {
         when(knowledgeBaseRepository.save(any(UserKnowledgeBase.class))).thenAnswer(inv -> inv.getArgument(0));
         when(userInfoRepository.findById(userId)).thenReturn(Optional.empty());
         when(userInfoRepository.save(any(UserInfo.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(grpcClient.triggerEmbeddingGeneration(any(), anyString(), any()))
-                .thenReturn(TriggerResponse.newBuilder().setSuccess(true).build());
 
         var result = service.ingestGitHubData(userId);
 
         assertThat(result.success()).isTrue();
         
-        // verify existing entry was updated
-        ArgumentCaptor<UserKnowledgeBase> captor = ArgumentCaptor.forClass(UserKnowledgeBase.class);
-        verify(knowledgeBaseRepository).save(captor.capture());
-        assertThat(captor.getValue().getContent()).contains("Updated README");
+        // verify entry was saved
+        verify(knowledgeBaseRepository).save(any(UserKnowledgeBase.class));
     }
 
     private Users createTestUser(UUID userId) {

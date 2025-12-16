@@ -1,7 +1,6 @@
 package com.arte.ingestion.service;
 
 import com.arte.ingestion.client.GitHubGraphQLClient;
-import com.arte.ingestion.client.ProcessingServiceGrpcClient;
 import com.arte.ingestion.dto.github.GitHubGraphQLResponse;
 import com.arte.ingestion.dto.github.RepositoryNode;
 import com.arte.ingestion.entity.UserInfo;
@@ -30,7 +29,6 @@ public class GitHubIngestionService {
     private static final String SOURCE_TYPE = "github";
 
     private final GitHubGraphQLClient gitHubGraphQLClient;
-    private final ProcessingServiceGrpcClient grpcClient;
     private final UserRepository userRepository;
     private final UserInfoRepository userInfoRepository;
     private final UserKnowledgeBaseRepository knowledgeBaseRepository;
@@ -143,13 +141,6 @@ public class GitHubIngestionService {
         userInfo.setGithubStats(objectMapper.convertValue(githubStats, Map.class));
         userInfo.setLastIngestedAt(Instant.now());
         userInfoRepository.save(userInfo);
-
-        // 4. trigger gRPC to generate embeddings from the api-core
-        List<UUID> entryIds = knowledgeBaseEntries.stream()
-                .map(UserKnowledgeBase::getId)
-                .toList();
-
-        grpcClient.triggerEmbeddingGeneration(userId, SOURCE_TYPE, entryIds);
 
         log.info("GitHub ingestion completed for user {}: {} repos processed", userId, pinnedRepos.size());
 

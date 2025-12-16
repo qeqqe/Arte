@@ -1,6 +1,5 @@
 package com.arte.ingestion.service;
 
-import com.arte.ingestion.client.ProcessingServiceGrpcClient;
 import com.arte.ingestion.dto.resume.ResumeSummary;
 import com.arte.ingestion.entity.UserInfo;
 import com.arte.ingestion.entity.UserKnowledgeBase;
@@ -39,14 +38,13 @@ public class ResumeProcessingService {
     @Value("${ingestion.resume.word-cap:" + DEFAULT_WORD_CAP + "}")
     private int wordCap;
 
-    private final ProcessingServiceGrpcClient grpcClient;
     private final UserRepository userRepository;
     private final UserInfoRepository userInfoRepository;
     private final UserKnowledgeBaseRepository knowledgeBaseRepository;
     private final ObjectMapper objectMapper;
 
     /**
-     * processes a resume PDF, extracts text with word cap, and triggers embedding generation.
+     * processes a resume PDF, extracts text with word cap.
      *
      * @param userId The user's UUID
      * @param file   The uploaded PDF file
@@ -127,10 +125,7 @@ public class ResumeProcessingService {
                         .metadata(metadata)
                         .build());
 
-        UserKnowledgeBase savedEntry = knowledgeBaseRepository.save(entry);
-
-        // 8. trigger gRPC to generate embeddings
-        grpcClient.triggerEmbeddingGeneration(userId, SOURCE_TYPE, List.of(savedEntry.getId()));
+        knowledgeBaseRepository.save(entry);
 
         log.info("Resume processing completed for user {}: {} words", userId, wordCount);
 

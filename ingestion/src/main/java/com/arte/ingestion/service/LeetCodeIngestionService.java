@@ -1,7 +1,6 @@
 package com.arte.ingestion.service;
 
 import com.arte.ingestion.client.LeetCodeGraphQLClient;
-import com.arte.ingestion.client.ProcessingServiceGrpcClient;
 import com.arte.ingestion.dto.leetcode.LeetCodeStats;
 import com.arte.ingestion.entity.UserInfo;
 import com.arte.ingestion.entity.UserKnowledgeBase;
@@ -28,7 +27,6 @@ public class LeetCodeIngestionService {
     private static final int RECENT_SUBMISSIONS_LIMIT = 20;
 
     private final LeetCodeGraphQLClient leetCodeClient;
-    private final ProcessingServiceGrpcClient grpcClient;
     private final UserRepository userRepository;
     private final UserInfoRepository userInfoRepository;
     private final UserKnowledgeBaseRepository knowledgeBaseRepository;
@@ -97,10 +95,7 @@ public class LeetCodeIngestionService {
                         .metadata(metadata)
                         .build());
 
-        UserKnowledgeBase savedEntry = knowledgeBaseRepository.save(entry);
-
-        // 5. trigger gRPC to generate embeddings from api-core
-        grpcClient.triggerEmbeddingGeneration(userId, SOURCE_TYPE, List.of(savedEntry.getId()));
+        knowledgeBaseRepository.save(entry);
 
         log.info("LeetCode ingestion completed for user {}", userId);
 

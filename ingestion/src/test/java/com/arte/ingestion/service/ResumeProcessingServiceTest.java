@@ -1,10 +1,8 @@
 package com.arte.ingestion.service;
 
-import com.arte.ingestion.client.ProcessingServiceGrpcClient;
 import com.arte.ingestion.entity.UserInfo;
 import com.arte.ingestion.entity.UserKnowledgeBase;
 import com.arte.ingestion.entity.Users;
-import com.arte.ingestion.grpc.TriggerResponse;
 import com.arte.ingestion.repository.UserInfoRepository;
 import com.arte.ingestion.repository.UserKnowledgeBaseRepository;
 import com.arte.ingestion.repository.UserRepository;
@@ -25,14 +23,11 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ResumeProcessingServiceTest {
 
-    @Mock
-    private ProcessingServiceGrpcClient grpcClient;
     @Mock
     private UserRepository userRepository;
     @Mock
@@ -48,7 +43,6 @@ class ResumeProcessingServiceTest {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         service = new ResumeProcessingService(
-                grpcClient,
                 userRepository,
                 userInfoRepository,
                 knowledgeBaseRepository,
@@ -124,15 +118,12 @@ class ResumeProcessingServiceTest {
                     kb.setId(UUID.randomUUID());
                     return kb;
                 });
-        when(grpcClient.triggerEmbeddingGeneration(any(), anyString(), any()))
-                .thenReturn(TriggerResponse.newBuilder().setSuccess(true).build());
 
         var result = service.processResume(userId, file);
 
         // if pdf parsing succeeds and has text
         if (result.success()) {
             assertThat(result.wordCount()).isGreaterThan(0);
-            verify(grpcClient).triggerEmbeddingGeneration(eq(userId), eq("resume"), any());
         }
     }
 

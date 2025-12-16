@@ -1,7 +1,7 @@
 spring.application.name=api-core
 server.port=8082
 
-spring.datasource.url=jdbc:postgresql://localhost:5432/arte  # or wherever your db is
+spring.datasource.url=jdbc:postgresql://localhost:5432/arte
 spring.datasource.username=test
 spring.datasource.password=test
 spring.datasource.driver-class-name=org.postgresql.Driver
@@ -14,6 +14,14 @@ spring.jpa.hibernate.ddl-auto=none
 
 logging.level.org.flywaydb=DEBUG
 
+# gRPC server config
+grpc.server.port=50051
+grpc.server.max-inbound-message-size=10MB
+
+# gRPC client config for ingestion service
+ingestion.grpc.host=localhost
+ingestion.grpc.port=50052
+ingestion.grpc.timeout-seconds=30
 
 spring.security.oauth2.client.registration.github.client-id=YOUR_GITHUB_CLIENT_ID
 spring.security.oauth2.client.registration.github.client-secret=YOUR_GITHUB_CLIENT_SECRET
