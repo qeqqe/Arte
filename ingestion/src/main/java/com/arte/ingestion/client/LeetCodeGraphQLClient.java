@@ -5,7 +5,6 @@
 package com.arte.ingestion.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -19,8 +18,6 @@ import java.util.Map;
 public class LeetCodeGraphQLClient {
 
     private static final String LEETCODE_GRAPHQL_URL = "https://leetcode.com/graphql";
-
-    private final ObjectMapper objectMapper;
 
     private final WebClient webClient = WebClient.builder()
             .baseUrl(LEETCODE_GRAPHQL_URL)

@@ -38,7 +38,7 @@ public class ProcessingServiceGrpcClient {
     public void init() {
         log.info("Initializing gRPC client for processing service at {}:{}", grpcHost, grpcPort);
         channel = ManagedChannelBuilder.forAddress(grpcHost, grpcPort)
-                .usePlaintext() // Use TLS in production
+                .usePlaintext()
                 .build();
         blockingStub = ProcessingServiceGrpc.newBlockingStub(channel);
     }
@@ -92,11 +92,6 @@ public class ProcessingServiceGrpcClient {
         }
     }
 
-    /**
-     * Health check for the processing service.
-     *
-     * @return true if the service is healthy, false otherwise
-     */
     public boolean isHealthy() {
         try {
             HealthCheckResponse response = blockingStub

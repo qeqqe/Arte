@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.arte.ingestion.grpc";
+option java_outer_classname = "IngestionServiceProto";
+
+package ingestion;
+
+service IngestionService {
+    rpc IngestGitHub(IngestGitHubRequest) returns (IngestGitHubResponse);
+    rpc IngestLeetCode(IngestLeetCodeRequest) returns (IngestLeetCodeResponse);
+    rpc IngestResume(IngestResumeRequest) returns (IngestResumeResponse);
+    rpc IngestAll(IngestAllRequest) returns (IngestAllResponse);
+    rpc HealthCheck(IngestionHealthRequest) returns (IngestionHealthResponse);
+}
+
+message IngestGitHubRequest {
+    string user_id = 1;
+}
+
+message IngestGitHubResponse {
+    bool success = 1;
+    string message = 2;
+    int32 repos_processed = 3;
+    repeated string repo_names = 4;
+}
+
+message IngestLeetCodeRequest {
+    string user_id = 1;
+    string leetcode_username = 2;
+}
+
+message IngestLeetCodeResponse {
+    bool success = 1;
+    string message = 2;
+    int32 problems_solved = 3;
+}
+
+message IngestResumeRequest {
+    string user_id = 1;
+    string filename = 2;
+    bytes content = 3;
+}
+
+message IngestResumeResponse {
+    bool success = 1;
+    string message = 2;
+    int32 word_count = 3;
+}
+
+message IngestAllRequest {
+    string user_id = 1;
+    string leetcode_username = 2;
+    bytes resume_content = 3;
+    string resume_filename = 4;
+}
+
+message IngestAllResponse {
+    bool success = 1;
+    string message = 2;
+    IngestGitHubResponse github_result = 3;
+    IngestLeetCodeResponse leetcode_result = 4;
+    IngestResumeResponse resume_result = 5;
+}
+
+message IngestionHealthRequest {
+    string service_name = 1;
+}
+
+message IngestionHealthResponse {
+    bool healthy = 1;
+    string status = 2;
+    int64 timestamp = 3;
+}
