@@ -2,6 +2,7 @@ package com.arte.ingestion.grpc;
 
 import com.arte.ingestion.service.GitHubIngestionService;
 import com.arte.ingestion.service.LeetCodeIngestionService;
+import com.arte.ingestion.service.LinkedInJobIngestionService;
 import com.arte.ingestion.service.ResumeProcessingService;
 import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +25,7 @@ class IngestionGrpcServiceImplTest {
     @Mock private GitHubIngestionService gitHubIngestionService;
     @Mock private LeetCodeIngestionService leetCodeIngestionService;
     @Mock private ResumeProcessingService resumeProcessingService;
+    @Mock private LinkedInJobIngestionService linkedInJobIngestionService;
     @Mock private StreamObserver<IngestGitHubResponse> githubObserver;
     @Mock private StreamObserver<IngestLeetCodeResponse> leetcodeObserver;
     @Mock private StreamObserver<IngestionHealthResponse> healthObserver;
@@ -35,7 +37,8 @@ class IngestionGrpcServiceImplTest {
         grpcService = new IngestionGrpcServiceImpl(
                 gitHubIngestionService,
                 leetCodeIngestionService,
-                resumeProcessingService
+                resumeProcessingService,
+                linkedInJobIngestionService
         );
     }
 

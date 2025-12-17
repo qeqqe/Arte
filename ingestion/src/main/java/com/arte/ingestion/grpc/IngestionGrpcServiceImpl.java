@@ -2,6 +2,7 @@ package com.arte.ingestion.grpc;
 
 import com.arte.ingestion.service.GitHubIngestionService;
 import com.arte.ingestion.service.LeetCodeIngestionService;
+import com.arte.ingestion.service.LinkedInJobIngestionService;
 import com.arte.ingestion.service.ResumeProcessingService;
 import com.arte.ingestion.util.ByteArrayMultipartFile;
 import io.grpc.stub.StreamObserver;
@@ -17,14 +18,16 @@ public class IngestionGrpcServiceImpl extends IngestionServiceGrpc.IngestionServ
     private final GitHubIngestionService gitHubIngestionService;
     private final LeetCodeIngestionService leetCodeIngestionService;
     private final ResumeProcessingService resumeProcessingService;
+    private final LinkedInJobIngestionService linkedInJobIngestionService;
 
     public IngestionGrpcServiceImpl(
             GitHubIngestionService gitHubIngestionService,
             LeetCodeIngestionService leetCodeIngestionService,
-            ResumeProcessingService resumeProcessingService) {
+            ResumeProcessingService resumeProcessingService, LinkedInJobIngestionService linkedInJobIngestionService) {
         this.gitHubIngestionService = gitHubIngestionService;
         this.leetCodeIngestionService = leetCodeIngestionService;
         this.resumeProcessingService = resumeProcessingService;
+        this.linkedInJobIngestionService = linkedInJobIngestionService;
     }
 
     @Override
@@ -198,7 +201,7 @@ public class IngestionGrpcServiceImpl extends IngestionServiceGrpc.IngestionServ
             var responseBuilder = IngestAllResponse.newBuilder()
                     .setSuccess(overallSuccess)
                     .setMessage(overallSuccess ? "Full ingestion completed" : "Some ingestions failed");
-            
+
             if (githubResponse != null) responseBuilder.setGithubResult(githubResponse);
             if (leetcodeResponse != null) responseBuilder.setLeetcodeResult(leetcodeResponse);
             if (resumeResponse != null) responseBuilder.setResumeResult(resumeResponse);
@@ -229,5 +232,36 @@ public class IngestionGrpcServiceImpl extends IngestionServiceGrpc.IngestionServ
         
         responseObserver.onNext(response);
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public void ingestLinkedInJob(IngestLinkedInJobRequest request,StreamObserver<IngestLinkedInJobResponse> responseObserver) {
+        log.info("gRPC: Received job ingestion for user: {}, jobId: {}",
+                request.getUserId(), request.getJobId());
+
+        try {
+            UUID userId = UUID.fromString(request.getUserId());
+            var result = linkedInJobIngestionService.ingestLinkedInJob(userId, request.getJobId());
+
+            var response = IngestLinkedInJobResponse.newBuilder()
+                    .setSuccess(result.success())
+                    .setMessage(result.message())
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+
+            log.info("gRPC: ingestion Job completed for user: {}, jobId: {}",
+                    request.getUserId(), request.getJobId());
+
+        } catch (Exception e) {
+            log.error("gRPC: Job ingestion failed for user: {}", request.getUserId(), e);
+            var response = IngestLinkedInJobResponse.newBuilder()
+                    .setSuccess(false)
+                    .setMessage("Error: " + e.getMessage())
+                    .build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        }
     }
 }

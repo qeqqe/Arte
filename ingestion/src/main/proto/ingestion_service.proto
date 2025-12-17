@@ -12,6 +12,7 @@ service IngestionService {
     rpc IngestResume(IngestResumeRequest) returns (IngestResumeResponse);
     rpc IngestAll(IngestAllRequest) returns (IngestAllResponse);
     rpc HealthCheck(IngestionHealthRequest) returns (IngestionHealthResponse);
+    rpc IngestLinkedInJob(IngestLinkedInJobRequest) returns (IngestLinkedInJobResponse);
 }
 
 message IngestGitHubRequest {
@@ -71,4 +72,14 @@ message IngestionHealthResponse {
     bool healthy = 1;
     string status = 2;
     int64 timestamp = 3;
+}
+
+message IngestLinkedInJobRequest {
+    string user_id = 1;
+    string job_id = 2;
+}
+
+message IngestLinkedInJobResponse {
+    bool success = 1;
+    string message = 2; // formatted md from
 }
