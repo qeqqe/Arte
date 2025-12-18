@@ -1,7 +1,9 @@
 package com.arte.ingestion.service;
 
 
+import com.arte.ingestion.entity.LinkedInJobs;
 import com.arte.ingestion.entity.Users;
+import com.arte.ingestion.repository.LinkedInJobsRepository;
 import com.arte.ingestion.repository.UserRepository;
 import com.vladsch.flexmark.html2md.converter.FlexmarkHtmlConverter;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import java.util.UUID;
 public class LinkedInJobIngestionService  {
 
     private final UserRepository userRepository;
+    private final LinkedInJobsRepository linkedInJobsRepository;
 
     /**
      * Ingests LinkedIn jobs from the job id <a href="https://www.linkedin.com/jobs/view/">https://www.linkedin.com/jobs/view/{jobId}</a>
@@ -44,6 +47,14 @@ public class LinkedInJobIngestionService  {
             log.warn("Job or job content not found for the ID: {}", jobId);
             return new LinkedInIngestionResult(false, "Job or Job content not found for: {}" + jobId);
         }
+        // save the job
+        LinkedInJobs entry = LinkedInJobs.builder()
+                .user(user)
+                .jobId(jobId)
+                .rawContent(content)
+                .build();
+
+        linkedInJobsRepository.save(entry);
 
         return new LinkedInIngestionResult(true, content);
     }
