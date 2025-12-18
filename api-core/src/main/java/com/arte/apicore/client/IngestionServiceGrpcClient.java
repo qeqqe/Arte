@@ -160,4 +160,26 @@ public class IngestionServiceGrpcClient {
             return false;
         }
     }
+
+    // scraping the job raw text (md) from the jobId
+    public IngestLinkedInJobResponse ingestLinkedInJob(UUID userId, String jobId) {
+        log.info("Scraping job: {}, for the user: {}", userId, jobId);
+
+        IngestLinkedInJobRequest request  = IngestLinkedInJobRequest.newBuilder()
+                .setUserId(userId.toString())
+                .setJobId(jobId)
+                .build();
+        try {
+            return blockingStub
+                    .withDeadlineAfter(timeoutSeconds, TimeUnit.SECONDS)
+                    .ingestLinkedInJob(request);
+
+        } catch (StatusRuntimeException e) {
+            log.error("grpc call failed: {}", e.getStatus(), e);
+            return IngestLinkedInJobResponse.newBuilder()
+                    .setSuccess(false)
+                    .setMessage("Job ingestion failed for user")
+                    .build();
+        }
+    }
 }

@@ -25,7 +25,8 @@ ingestion.grpc.timeout-seconds=30
 
 spring.security.oauth2.client.registration.github.client-id=YOUR_GITHUB_CLIENT_ID
 spring.security.oauth2.client.registration.github.client-secret=YOUR_GITHUB_CLIENT_SECRET
-spring.security.oauth2.client.registration.github.scope=user:email,read:user,public_repo
+# note that models:read is required if you wanna use marketplace models (both embedding and LLMs)
+spring.security.oauth2.client.registration.github.scope=user:email,read:user,public_repo,models:read
 
 jwt.secret=your-256-bit-secret-key-here-min-32-chars
 jwt.access-token-expiration=14400000

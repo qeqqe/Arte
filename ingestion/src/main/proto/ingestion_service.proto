@@ -81,5 +81,5 @@ message IngestLinkedInJobRequest {
 
 message IngestLinkedInJobResponse {
     bool success = 1;
-    string message = 2; // formatted md from
+    string message = 2; // formatted md
 }
