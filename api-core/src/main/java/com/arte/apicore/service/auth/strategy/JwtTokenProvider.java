@@ -27,9 +27,10 @@ public class JwtTokenProvider {
         this.refreshTokenExpiration = refreshTokenExpiration;
     }
 
-    public String generateAccessToken(String username, String email) {
+    public String generateAccessToken(String userId, String username, String email) {
         return Jwts.builder()
-                .subject(username)
+                .subject(userId)
+                .claim("username", username)
                 .claim("email", email)
                 .claim("type", "access")
                 .issuedAt(new Date())
@@ -38,9 +39,10 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public String generateRefreshToken(String username, String email) {
+    public String generateRefreshToken(String userId, String username, String email) {
         return Jwts.builder()
-                .subject(username)
+                .subject(userId)
+                .claim("username", username)
                 .claim("email", email)
                 .claim("type", "refresh")
                 .issuedAt(new Date())

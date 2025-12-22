@@ -56,11 +56,12 @@ public class AuthController {
         }
 
         Claims claims = tokenProvider.validateToken(refreshToken);
+        String userId = claims.getId();
         String username = claims.getSubject();
         String email = claims.get("email", String.class);
 
-        String newAccessToken = tokenProvider.generateAccessToken(username, email);
-        String newRefreshToken = tokenProvider.generateRefreshToken(username, email);
+        String newAccessToken = tokenProvider.generateAccessToken(userId, username, email);
+        String newRefreshToken = tokenProvider.generateRefreshToken(userId, username, email);
 
         Cookie accessTokenCookie = createCookie("accessToken", newAccessToken, 4 * 60 * 60);
         Cookie refreshTokenCookie = createCookie("refreshToken", newRefreshToken, 7 * 24 * 60 * 60);

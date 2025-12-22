@@ -37,8 +37,9 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         String githubUsername = oauth2User.getAttribute("login");
         Users user = userService.getCurrentUser(githubUsername);
 
-        String accessToken = tokenProvider.generateAccessToken(user.getGithubUsername(), user.getEmail());
-        String refreshToken = tokenProvider.generateRefreshToken(user.getGithubUsername(), user.getEmail());
+        String userId = String.valueOf(user.getId());
+        String accessToken = tokenProvider.generateAccessToken(userId, user.getGithubUsername(), user.getEmail());
+        String refreshToken = tokenProvider.generateRefreshToken(userId, user.getGithubUsername(), user.getEmail());
 
         Cookie accessTokenCookie = createCookie("accessToken", accessToken, 4 * 60 * 60);
         Cookie refreshTokenCookie = createCookie("refreshToken", refreshToken, 7 * 24 * 60 * 60);

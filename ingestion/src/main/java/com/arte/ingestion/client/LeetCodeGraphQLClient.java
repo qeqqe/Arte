@@ -1,10 +1,7 @@
-/**
- * Core implementation from https://github.com/RealPeha/leetcode-graphql
- * Credit to the original authors
- */
 package com.arte.ingestion.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,6 +15,8 @@ import java.util.Map;
 public class LeetCodeGraphQLClient {
 
     private static final String LEETCODE_GRAPHQL_URL = "https://leetcode.com/graphql";
+
+    private final ObjectMapper objectMapper;
 
     private final WebClient webClient = WebClient.builder()
             .baseUrl(LEETCODE_GRAPHQL_URL)
@@ -61,19 +60,20 @@ public class LeetCodeGraphQLClient {
         );
 
         try {
-            return webClient.post()
+            String responseBody = webClient.post()
                     .bodyValue(requestBody)
                     .retrieve()
-                    .bodyToMono(JsonNode.class)
+                    .bodyToMono(String.class)
                     .doOnError(e -> log.error("Failed to fetch LeetCode profile for: {}", username, e))
                     .block();
+
+            return objectMapper.readTree(responseBody);
         } catch (Exception e) {
             log.error("LeetCode API call failed for user: {}", username, e);
             return null;
         }
     }
 
-    // recent submissions
     public JsonNode fetchRecentSubmissions(String username, int limit) {
         String query = """
             query getRecentSubmissions($username: String!, $limit: Int!) {
@@ -93,19 +93,20 @@ public class LeetCodeGraphQLClient {
         );
 
         try {
-            return webClient.post()
+            String responseBody = webClient.post()
                     .bodyValue(requestBody)
                     .retrieve()
-                    .bodyToMono(JsonNode.class)
+                    .bodyToMono(String.class)
                     .doOnError(e -> log.error("Failed to fetch LeetCode submissions for: {}", username, e))
                     .block();
+
+            return objectMapper.readTree(responseBody);
         } catch (Exception e) {
             log.error("LeetCode submissions API call failed for user: {}", username, e);
             return null;
         }
     }
 
-    // contest ranking
     public JsonNode fetchContestRanking(String username) {
         String query = """
             query getUserContestRanking($username: String!) {
@@ -133,19 +134,20 @@ public class LeetCodeGraphQLClient {
         );
 
         try {
-            return webClient.post()
+            String responseBody = webClient.post()
                     .bodyValue(requestBody)
                     .retrieve()
-                    .bodyToMono(JsonNode.class)
+                    .bodyToMono(String.class)
                     .doOnError(e -> log.error("Failed to fetch LeetCode contest ranking for: {}", username, e))
                     .block();
+
+            return objectMapper.readTree(responseBody);
         } catch (Exception e) {
             log.error("LeetCode contest API call failed for user: {}", username, e);
             return null;
         }
     }
 
-    // language stats
     public JsonNode fetchLanguageStats(String username) {
         String query = """
             query languageStats($username: String!) {
@@ -164,12 +166,14 @@ public class LeetCodeGraphQLClient {
         );
 
         try {
-            return webClient.post()
+            String responseBody = webClient.post()
                     .bodyValue(requestBody)
                     .retrieve()
-                    .bodyToMono(JsonNode.class)
+                    .bodyToMono(String.class)
                     .doOnError(e -> log.error("Failed to fetch LeetCode language stats for: {}", username, e))
                     .block();
+
+            return objectMapper.readTree(responseBody);
         } catch (Exception e) {
             log.error("LeetCode language stats API call failed for user: {}", username, e);
             return null;

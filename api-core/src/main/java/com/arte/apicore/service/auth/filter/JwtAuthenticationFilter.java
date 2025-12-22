@@ -1,6 +1,7 @@
 package com.arte.apicore.service.auth.filter;
 
 import com.arte.apicore.service.auth.strategy.JwtTokenProvider;
+import com.arte.apicore.service.auth.strategy.UserPrincipal;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -33,10 +34,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (token != null) {
             try {
                 Claims claims = tokenProvider.validateToken(token);
-                String username = claims.getSubject();
+                String userId = claims.getSubject();
+                String username = claims.get("username", String.class);
+                String email = claims.get("email", String.class);
+
+                UserPrincipal principal = new UserPrincipal(userId, username, email);
 
                 UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
+                        new UsernamePasswordAuthenticationToken(principal, null, Collections.emptyList());
                 SecurityContextHolder.getContext().setAuthentication(auth);
             } catch (Exception e) {
                 // Token invalid, continue without auth

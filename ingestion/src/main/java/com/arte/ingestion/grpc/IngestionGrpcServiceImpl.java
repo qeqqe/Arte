@@ -44,7 +44,7 @@ public class IngestionGrpcServiceImpl extends IngestionServiceGrpc.IngestionServ
                     .setReposProcessed(result.reposProcessed())
                     .addAllRepoNames(result.repoNames())
                     .build();
-            
+
             responseObserver.onNext(response);
             responseObserver.onCompleted();
             log.info("gRPC: GitHub ingestion completed for user: {}", userId);
