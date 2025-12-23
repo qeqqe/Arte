@@ -30,6 +30,7 @@
         <java.version>21</java.version>
         <grpc.version>1.76.0</grpc.version>
         <protobuf.version>4.31.1</protobuf.version>
+        <langchain.version>1.9.1</langchain.version>
     </properties>
     <dependencies>
         <dependency>
@@ -79,7 +80,12 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j</artifactId>
-            <version>1.9.1</version>
+            <version>${langchain.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-open-ai-official</artifactId>
+            <version>1.9.1-beta17</version>
         </dependency>
         <!-- monitoring -->
         <dependency>

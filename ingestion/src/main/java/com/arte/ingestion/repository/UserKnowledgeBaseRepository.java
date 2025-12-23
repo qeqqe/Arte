@@ -16,7 +16,7 @@ public interface UserKnowledgeBaseRepository extends JpaRepository<UserKnowledge
 
     List<UserKnowledgeBase> findByUserId(UUID userId);
 
-    List<UserKnowledgeBase> findByUserIdAndSourceType(UUID userId, String sourceType);
+    Optional<UserKnowledgeBase> findByUserIdAndSourceType(UUID userId, String sourceType);
 
     Optional<UserKnowledgeBase> findByUserIdAndSourceTypeAndSourceUrl(UUID userId, String sourceType, String sourceUrl);
 

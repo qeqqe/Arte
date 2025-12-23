@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 
@@ -70,21 +71,18 @@ public class GitHubGraphQLClient {
         String readmeUrl = String.format("%s/repos/%s/%s/readme", GITHUB_REST_URL, owner, repo);
 
         WebClient restClient = WebClient.create();
-        
+
         return restClient.get()
                 .uri(readmeUrl)
                 .header("Authorization", "Bearer " + token)
-                .header("Accept", "application/vnd.github.v3+json")
                 .retrieve()
                 .bodyToMono(GitHubReadmeResponse.class)
                 .map(response -> {
-                    if ("base64".equals(response.encoding())) {
-                        return new String(Base64.getDecoder().decode(response.content()));
-                    }
-                    return response.content();
+                    byte[] decodedBytes = Base64.getMimeDecoder().decode(response.content());
+                    return new String(decodedBytes, StandardCharsets.UTF_8);
                 })
                 .onErrorResume(e -> {
-                    log.warn("Failed to fetch README for {}/{}: {}", owner, repo, e.getMessage());
+                    log.warn("Failed to fetch README: {}", e.getMessage());
                     return Mono.just("");
                 })
                 .block();

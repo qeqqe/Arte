@@ -102,16 +102,17 @@ public class ResumeProcessingService {
         userInfoRepository.save(userInfo);
 
         // 7. create knowledge base entry
-        String sourceUrl = "resume://" + userId + "/" + fileHash;
+        // will add when we use storge bucket
+//        String sourceUrl = "resume://" + userId + "/" + fileHash;
         Map<String, Object> metadata = Map.of(
-                "fileName", file.getOriginalFilename(),
+                "fileName", Objects.requireNonNull(file.getOriginalFilename()),
                 "fileHash", fileHash,
                 "wordCount", wordCount,
                 "processedAt", Instant.now().toString()
         );
 
         UserKnowledgeBase entry = knowledgeBaseRepository
-                .findByUserIdAndSourceTypeAndSourceUrl(userId, SOURCE_TYPE, sourceUrl)
+                .findByUserIdAndSourceType(userId, SOURCE_TYPE)
                 .map(existing -> {
                     existing.setContent(cappedText);
                     existing.setMetadata(metadata);
@@ -121,7 +122,7 @@ public class ResumeProcessingService {
                         .user(user)
                         .content(cappedText)
                         .sourceType(SOURCE_TYPE)
-                        .sourceUrl(sourceUrl)
+                        .sourceUrl(null)
                         .metadata(metadata)
                         .build());
 
