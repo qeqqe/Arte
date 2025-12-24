@@ -63,7 +63,8 @@ public class GitHubIngestionService {
 
         // 2. build the stats and fetch readme.md
         List<RepoSummary> repoSummaries = new ArrayList<>();
-        List<UserKnowledgeBase> knowledgeBaseEntries = new ArrayList<>();
+        List<UserKnowledgeBase>
+                knowledgeBaseEntries = new ArrayList<>();
         Map<String, Integer> languageDistribution = new HashMap<>();
         Set<String> allTopics = new HashSet<>();
         int totalStars = 0;
@@ -112,7 +113,6 @@ public class GitHubIngestionService {
                         return existing;
                     })
                     .orElse(UserKnowledgeBase.builder()
-                            .user(user)
                             .content(content)
                             .sourceType(SOURCE_TYPE)
                             .sourceUrl(repo.url())

@@ -119,7 +119,6 @@ public class ResumeProcessingService {
                     return existing;
                 })
                 .orElse(UserKnowledgeBase.builder()
-                        .user(user)
                         .content(cappedText)
                         .sourceType(SOURCE_TYPE)
                         .sourceUrl(null)

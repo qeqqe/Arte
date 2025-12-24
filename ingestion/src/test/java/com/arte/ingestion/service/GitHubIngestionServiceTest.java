@@ -116,7 +116,6 @@ class GitHubIngestionServiceTest {
 
         UserKnowledgeBase existingKb = UserKnowledgeBase.builder()
                 .id(kbId)
-                .user(user)
                 .content("old content")
                 .sourceType("github")
                 .build();

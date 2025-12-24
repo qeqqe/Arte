@@ -2,9 +2,8 @@ package com.arte.ingestion.service;
 
 
 import com.arte.ingestion.entity.LinkedInJobs;
-import com.arte.ingestion.entity.Users;
 import com.arte.ingestion.repository.LinkedInJobsRepository;
-import com.arte.ingestion.repository.UserRepository;
+import com.google.rpc.Help;
 import com.vladsch.flexmark.html2md.converter.FlexmarkHtmlConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.UUID;
 
 
@@ -23,7 +23,6 @@ import java.util.UUID;
 @Slf4j
 public class LinkedInJobIngestionService  {
 
-    private final UserRepository userRepository;
     private final LinkedInJobsRepository linkedInJobsRepository;
 
     /**
@@ -38,8 +37,12 @@ public class LinkedInJobIngestionService  {
     public LinkedInIngestionResult ingestLinkedInJob(UUID userId,  String jobId) throws IOException {
         log.info("Starting Job ingestion for user: {}, on: {}", userId, jobId);
 
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: {}" + userId));
+        Optional<LinkedInJobs> existing = linkedInJobsRepository.findByJobId(jobId);
+
+        if(existing.isPresent()) {
+            LinkedInJobs job = existing.get();
+            return new LinkedInIngestionResult(true, job.getRawContent());
+        }
 
         String content = jobContent(jobId);
 
@@ -47,13 +50,11 @@ public class LinkedInJobIngestionService  {
             log.warn("Job or job content not found for the ID: {}", jobId);
             return new LinkedInIngestionResult(false, "Job or Job content not found for: {}" + jobId);
         }
-        // save the job
+
         LinkedInJobs entry = LinkedInJobs.builder()
-                .user(user)
                 .jobId(jobId)
                 .rawContent(content)
                 .build();
-
         linkedInJobsRepository.save(entry);
 
         return new LinkedInIngestionResult(true, content);

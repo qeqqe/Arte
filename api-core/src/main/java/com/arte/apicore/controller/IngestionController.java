@@ -1,10 +1,7 @@
 package com.arte.apicore.controller;
 
 import com.arte.apicore.client.IngestionServiceGrpcClient;
-import com.arte.apicore.dto.proto.GitHubResponseDTO;
-import com.arte.apicore.dto.proto.LeetCodeRequestDTO;
-import com.arte.apicore.dto.proto.LeetCodeResponseDTO;
-import com.arte.apicore.dto.proto.ResumeResponseDTO;
+import com.arte.apicore.dto.proto.*;
 import com.arte.apicore.grpc.*;
 import com.arte.apicore.service.auth.strategy.UserPrincipal;
 import org.springframework.http.MediaType;
@@ -17,11 +14,11 @@ import java.io.IOException;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/onboarding")
-public class OnboardingController {
+@RequestMapping("/api/ingestion")
+public class IngestionController {
     public final IngestionServiceGrpcClient ingestionServiceGrpcClient;
 
-    public OnboardingController(IngestionServiceGrpcClient ingestionServiceGrpcClient) {
+    public IngestionController(IngestionServiceGrpcClient ingestionServiceGrpcClient) {
         this.ingestionServiceGrpcClient = ingestionServiceGrpcClient;
     }
 
@@ -59,6 +56,20 @@ public class OnboardingController {
         );
         return ResponseEntity.ok(
                 new ResumeResponseDTO(response.getSuccess(), response.getMessage(), response.getWordCount())
+        );
+    }
+
+    @PostMapping("/linkedin")
+    public ResponseEntity<LinkedInJobResponseDTO> ingestLinkedInJob
+            (@RequestBody LinkedInJobRequestDTO request,
+             @AuthenticationPrincipal UserPrincipal user
+    ) {
+        IngestLinkedInJobResponse response = ingestionServiceGrpcClient.ingestLinkedInJob(
+                UUID.fromString(user.userId()),
+                request.jobId()
+        );
+        return ResponseEntity.ok(
+                new LinkedInJobResponseDTO(response.getSuccess(), response.getMessage())
         );
     }
 

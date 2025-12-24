@@ -88,7 +88,6 @@ public class LeetCodeIngestionService {
                     return existing;
                 })
                 .orElse(UserKnowledgeBase.builder()
-                        .user(user)
                         .content(content)
                         .sourceType(SOURCE_TYPE)
                         .sourceUrl(sourceUrl)

@@ -23,11 +23,7 @@ public class LinkedInJobs {
     @Column(columnDefinition = "uuid")
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private Users user;
-
-    @Column(name = "job_id", nullable = false)
+    @Column(name = "job_id", nullable = false, unique = true)
     private String jobId;
 
     @Column(name = "raw_content", nullable = false)
