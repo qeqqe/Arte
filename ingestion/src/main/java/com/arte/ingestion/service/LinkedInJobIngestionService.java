@@ -3,7 +3,6 @@ package com.arte.ingestion.service;
 
 import com.arte.ingestion.entity.LinkedInJobs;
 import com.arte.ingestion.repository.LinkedInJobsRepository;
-import com.google.rpc.Help;
 import com.vladsch.flexmark.html2md.converter.FlexmarkHtmlConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,31 +60,45 @@ public class LinkedInJobIngestionService  {
     }
 
     private String jobContent(String jobId) throws IOException {
-        if (jobId.length() != 10 && jobId.chars().allMatch(Character::isDigit)) {
-            log.warn("Not a valid JobId (10 digit u_int only).");
+        if (jobId.length() != 10 || !jobId.chars().allMatch(Character::isDigit)) {
+            log.warn("Invalid JobId format (expected 10 digits).");
             return null;
         }
 
-        // get the raw HTML from the job
         Document doc = Jsoup.connect("https://www.linkedin.com/jobs/view/" + jobId)
-                .userAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
+                .userAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36")
                 .get();
 
-        Document htmlString = Jsoup.parse(doc.html());
-
-        // get the element
-        Element jobDataHtml =  htmlString
-                .selectFirst(".show-more-less-html__markup--clamp-after-5");
+        Element jobDataHtml = doc.selectFirst(".show-more-less-html__markup--clamp-after-5");
 
         if (jobDataHtml == null || !jobDataHtml.hasText()) {
             log.warn("Job data element not found.");
             return null;
         }
 
-        // convert to Markdown
+        // clean HTML before conversion
+        cleanHtmlForMarkdown(jobDataHtml);
+
         return FlexmarkHtmlConverter.builder()
                 .build()
                 .convert(jobDataHtml.html());
+    }
+
+    private void cleanHtmlForMarkdown(Element element) {
+        // remove line breaks after strong tags
+        element.select("strong + br").remove();
+
+        // convert strong tags that act as headers to proper h3
+        element.select("strong").forEach(strong -> {
+            String text = strong.text().trim();
+            if (text.length() > 0 && !strong.parent().tagName().equals("li")) {
+                strong.before("<h3>" + text + "</h3>");
+                strong.remove();
+            }
+        });
+
+        // remove redundant br tags
+        element.select("br + br").remove();
     }
 
     public record LinkedInIngestionResult(
