@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.arte.processing.grpc";
+option java_outer_classname = "ProcessingServiceProto";
+
+package processing;
+
+service ProcessingService {
+  rpc ProcessUserInfo(ProcessUserInfoRequest) returns (ProcessUserInfoResponse);
+  rpc ProcessJobInfo(ProcessJobInfoRequest) returns (ProcessJobInfoResponse);
+  rpc ProcessUserAndComparison(ProcessUserAndComparisonRequest) returns (ProcessUserAndComparisonResponse);
+}
+
+message ProcessUserInfoRequest {
+  string user_id = 1;
+  string user_info = 2; // json of the all the info (github, leetcode, resume)
+}
+
+message ProcessUserInfoResponse {
+  bool success = 1;
+  string message = 2; // processed json user data
+}
+
+message ProcessJobInfoRequest {
+  string job_id = 1;
+  string job_info = 2; // md of the scraped job
+}
+
+message ProcessJobInfoResponse {
+  bool success = 1;
+  string message = 2; // processed json of the job info with all skill/experience requirement
+}
+message ProcessUserAndComparisonRequest {
+  string user_id = 1;
+  string processed_user_info = 2;
+  string job_id = 3;
+  string processed_job_info = 4;
+}
+message ProcessUserAndComparisonResponse {
+  bool success = 1;
+  string message = 2; // json of the processed comparison
+}
