@@ -1,7 +1,9 @@
-package com.arte.ingestion.entity.github;
+package com.arte.ingestion.dto.github;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.jackson.Jacksonized;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -9,6 +11,7 @@ import java.util.Map;
 
 @Data
 @Builder
+@Jacksonized
 public class GitHubStats {
     private Integer totalStars;
     private Integer totalForks;

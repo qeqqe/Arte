@@ -1,4 +1,4 @@
-package com.arte.ingestion.dto.leetcode;
+package com.arte.processing.dto.leetcode;
 
 import lombok.Builder;
 import lombok.Data;

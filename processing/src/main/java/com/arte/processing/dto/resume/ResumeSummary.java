@@ -1,4 +1,4 @@
-package com.arte.ingestion.dto.resume;
+package com.arte.processing.dto.resume;
 
 import lombok.Builder;
 import lombok.Data;

@@ -6,8 +6,8 @@ import com.arte.ingestion.dto.github.RepositoryNode;
 import com.arte.ingestion.entity.UserInfo;
 import com.arte.ingestion.entity.UserKnowledgeBase;
 import com.arte.ingestion.entity.Users;
-import com.arte.ingestion.entity.github.GitHubStats;
-import com.arte.ingestion.entity.github.RepoSummary;
+import com.arte.ingestion.dto.github.GitHubStats;
+import com.arte.ingestion.dto.github.RepoSummary;
 import com.arte.ingestion.repository.UserInfoRepository;
 import com.arte.ingestion.repository.UserKnowledgeBaseRepository;
 import com.arte.ingestion.repository.UserRepository;
@@ -138,7 +138,7 @@ public class GitHubIngestionService {
                         .user(user)
                         .build());
 
-        userInfo.setGithubStats(objectMapper.convertValue(githubStats, Map.class));
+        userInfo.setGithubStats(githubStats);
         userInfo.setLastIngestedAt(Instant.now());
         userInfoRepository.save(userInfo);
 

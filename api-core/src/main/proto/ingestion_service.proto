@@ -13,6 +13,7 @@ service IngestionService {
     rpc IngestAll(IngestAllRequest) returns (IngestAllResponse);
     rpc HealthCheck(IngestionHealthRequest) returns (IngestionHealthResponse);
     rpc IngestLinkedInJob(IngestLinkedInJobRequest) returns (IngestLinkedInJobResponse);
+    rpc GetUserInfo(GetUserInfoRequest) returns (GetUserInfoResponse);
 }
 
 message IngestGitHubRequest {
@@ -24,6 +25,7 @@ message IngestGitHubResponse {
     string message = 2;
     int32 repos_processed = 3;
     repeated string repo_names = 4;
+    GitHubStats github_stats = 5;
 }
 
 message IngestLeetCodeRequest {
@@ -35,6 +37,7 @@ message IngestLeetCodeResponse {
     bool success = 1;
     string message = 2;
     int32 problems_solved = 3;
+    LeetCodeStats leetcode_stats = 4;
 }
 
 message IngestResumeRequest {
@@ -47,6 +50,7 @@ message IngestResumeResponse {
     bool success = 1;
     string message = 2;
     int32 word_count = 3;
+    ResumeSummary resume_summary = 4;
 }
 
 message IngestAllRequest {
@@ -81,5 +85,82 @@ message IngestLinkedInJobRequest {
 
 message IngestLinkedInJobResponse {
     bool success = 1;
-    string message = 2; // formatted md
+    string message = 2;
+}
+
+message GetUserInfoRequest {
+    string user_id = 1;
+}
+
+message GetUserInfoResponse {
+    bool success = 1;
+    string message = 2;
+    UserInfoData user_info = 3;
+}
+
+message GitHubStats {
+    int32 total_stars = 1;
+    int32 total_forks = 2;
+    int32 total_pinned_repos = 3;
+    repeated RepoSummary pinned_repos = 4;
+    map<string, int32> language_distribution = 5;
+    repeated string top_topics = 6;
+    string last_synced = 7;
+}
+
+message RepoSummary {
+    string name = 1;
+    string url = 2;
+    int32 stars = 3;
+    int32 forks = 4;
+    string primary_language = 5;
+}
+
+message LeetCodeStats {
+    string username = 1;
+    int32 total_solved = 2;
+    int32 easy_solved = 3;
+    int32 medium_solved = 4;
+    int32 hard_solved = 5;
+    int32 ranking = 6;
+    int32 reputation = 7;
+    double star_rating = 8;
+    string about_me = 9;
+    repeated string badges = 10;
+    string active_badge = 11;
+    int32 contests_attended = 12;
+    double contest_rating = 13;
+    int32 global_ranking = 14;
+    double top_percentage = 15;
+    map<string, int32> language_stats = 16;
+    repeated RecentSubmission recent_submissions = 17;
+}
+
+message RecentSubmission {
+    string title = 1;
+    string title_slug = 2;
+    string language = 3;
+    int64 timestamp = 4;
+}
+
+message ResumeSummary {
+    string file_name = 1;
+    string file_hash = 2;
+    int32 word_count = 3;
+    string processed_at = 4;
+    string raw_text = 5;
+    repeated string skills = 6;
+    repeated string experiences = 7;
+    repeated string education = 8;
+    string summary = 9;
+}
+
+message UserInfoData {
+    string user_id = 1;
+    GitHubStats github_stats = 2;
+    LeetCodeStats leetcode_stats = 3;
+    ResumeSummary resume_summary = 4;
+    string processing_version = 5;
+    string processed_at = 6;
+    string last_ingested_at = 7;
 }

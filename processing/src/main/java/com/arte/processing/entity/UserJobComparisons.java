@@ -1,4 +1,4 @@
-package com.arte.ingestion.entity;
+package com.arte.processing.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -8,42 +8,40 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 @SuppressWarnings("JpaDataSourceORMInspection")
 @Entity
-@Table(name = "linkedin_jobs")
+@Table(name = "user_job_comparisons")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LinkedInJobs {
+public class UserJobComparisons {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(columnDefinition = "uuid")
     private UUID id;
 
-    @Column(name = "job_id", nullable = false, unique = true, length = 10)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private Users user;
+
+    @Column(name = "job_id", nullable = false, length = 10)
     private String jobId;
 
-    @Column(name = "raw_content", nullable = false)
-    private String rawContent;
-
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "processed_job_data", columnDefinition = "jsonb")
-    private Map<String, Object> processedJobData;
+    @Column(name = "comparison_data", nullable = false, columnDefinition = "jsonb")
+    private Map<String, Object> comparisonData;
+
+    @Column(name = "match_score", precision = 5, scale = 2)
+    private BigDecimal matchScore;
 
     @Column(name = "processing_version", length = 10)
     private String processingVersion;
-
-    @Column(name = "processed_at")
-    private Instant processedAt;
-
-    @Column(name = "embedding", columnDefinition = "vector(1536)")
-    private List<Float> embedding;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private Instant createdAt;

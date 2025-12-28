@@ -110,7 +110,7 @@ class ResumeProcessingServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userInfoRepository.findById(userId)).thenReturn(Optional.empty());
         when(userInfoRepository.save(any(UserInfo.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(knowledgeBaseRepository.findByUserIdAndSourceTypeAndSourceUrl(any(), any(), any()))
+        when(knowledgeBaseRepository.findByUserIdAndSourceType(any(), any()))
                 .thenReturn(Optional.empty());
         when(knowledgeBaseRepository.save(any(UserKnowledgeBase.class)))
                 .thenAnswer(inv -> {

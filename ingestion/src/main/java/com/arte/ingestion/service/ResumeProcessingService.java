@@ -97,13 +97,13 @@ public class ResumeProcessingService {
                         .user(user)
                         .build());
 
-        userInfo.setResumeSummary(objectMapper.convertValue(summary, Map.class));
+        userInfo.setResumeSummary(summary);
         userInfo.setLastIngestedAt(Instant.now());
         userInfoRepository.save(userInfo);
 
         // 7. create knowledge base entry
         // will add when we use storge bucket
-//        String sourceUrl = "resume://" + userId + "/" + fileHash;
+        // String sourceUrl = "resume://" + userId + "/" + fileHash;
         Map<String, Object> metadata = Map.of(
                 "fileName", Objects.requireNonNull(file.getOriginalFilename()),
                 "fileHash", fileHash,

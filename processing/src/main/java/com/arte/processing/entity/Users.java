@@ -1,10 +1,13 @@
 package com.arte.processing.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.util.UUID;
+
 @SuppressWarnings("JpaDataSourceORMInspection")
 @Entity
 @Table(name = "users")
@@ -32,6 +35,9 @@ public class Users {
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private Instant createdAt;
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private UserInfo userInfo;
 
     public Users(String email, String githubUsername, String githubToken) {
         this.email = email;

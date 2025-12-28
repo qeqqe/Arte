@@ -14,11 +14,14 @@ import java.util.UUID;
 @Repository
 public interface UserKnowledgeBaseRepository extends JpaRepository<UserKnowledgeBase, UUID> {
 
-    List<UserKnowledgeBase> findByUserId(UUID userId);
+    @Query("SELECT ukb FROM UserKnowledgeBase ukb WHERE ukb.user.id = :userId")
+    List<UserKnowledgeBase> findByUserId(@Param("userId") UUID userId);
 
-    Optional<UserKnowledgeBase> findByUserIdAndSourceType(UUID userId, String sourceType);
+    @Query("SELECT ukb FROM UserKnowledgeBase ukb WHERE ukb.user.id = :userId AND ukb.sourceType = :sourceType")
+    Optional<UserKnowledgeBase> findByUserIdAndSourceType(@Param("userId") UUID userId, @Param("sourceType") String sourceType);
 
-    Optional<UserKnowledgeBase> findByUserIdAndSourceTypeAndSourceUrl(UUID userId, String sourceType, String sourceUrl);
+    @Query("SELECT ukb FROM UserKnowledgeBase ukb WHERE ukb.user.id = :userId AND ukb.sourceType = :sourceType AND ukb.sourceUrl = :sourceUrl")
+    Optional<UserKnowledgeBase> findByUserIdAndSourceTypeAndSourceUrl(@Param("userId") UUID userId, @Param("sourceType") String sourceType, @Param("sourceUrl") String sourceUrl);
 
     @Modifying
     @Query("DELETE FROM UserKnowledgeBase ukb WHERE ukb.user.id = :userId AND ukb.sourceType = :sourceType")
@@ -27,5 +30,6 @@ public interface UserKnowledgeBaseRepository extends JpaRepository<UserKnowledge
     @Query("SELECT ukb FROM UserKnowledgeBase ukb WHERE ukb.user.id = :userId AND ukb.sourceType IN :sourceTypes")
     List<UserKnowledgeBase> findByUserIdAndSourceTypes(@Param("userId") UUID userId, @Param("sourceTypes") List<String> sourceTypes);
 
-    boolean existsByUserIdAndSourceTypeAndSourceUrl(UUID userId, String sourceType, String sourceUrl);
+    @Query("SELECT CASE WHEN COUNT(ukb) > 0 THEN true ELSE false END FROM UserKnowledgeBase ukb WHERE ukb.user.id = :userId AND ukb.sourceType = :sourceType AND ukb.sourceUrl = :sourceUrl")
+    boolean existsByUserIdAndSourceTypeAndSourceUrl(@Param("userId") UUID userId, @Param("sourceType") String sourceType, @Param("sourceUrl") String sourceUrl);
 }

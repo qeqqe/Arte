@@ -1,5 +1,7 @@
 package com.arte.ingestion.controller;
 
+import com.arte.ingestion.entity.UserInfo;
+import com.arte.ingestion.repository.UserInfoRepository;
 import com.arte.ingestion.service.GitHubIngestionService;
 import com.arte.ingestion.service.LeetCodeIngestionService;
 import com.arte.ingestion.service.ResumeProcessingService;
@@ -23,6 +25,7 @@ public class IngestionController {
     private final GitHubIngestionService gitHubIngestionService;
     private final LeetCodeIngestionService leetCodeIngestionService;
     private final ResumeProcessingService resumeProcessingService;
+    private final UserInfoRepository userInfoRepository;
 
     /**
      *  GitHub data ingestion for a user.
@@ -205,6 +208,50 @@ public class IngestionController {
                 messages.toString(),
                 Map.of()
         ));
+    }
+
+    /**
+     * Test endpoint to retrieve user info and verify deserialization
+     */
+    @GetMapping("/test-userinfo/{userId}")
+    public ResponseEntity<IngestionResponse> testGetUserInfo(@PathVariable UUID userId) {
+        log.info("Testing getUserInfo deserialization for user: {}", userId);
+        
+        try {
+            UserInfo userInfo = userInfoRepository.findById(userId).orElse(null);
+            
+            if (userInfo == null) {
+                return ResponseEntity.ok(new IngestionResponse(
+                        false,
+                        "User info not found",
+                        Map.of()
+                ));
+            }
+            
+            // This will test deserialization
+            var githubStats = userInfo.getGithubStats();
+            var leetcodeStats = userInfo.getLeetcodeStats();
+            var resumeSummary = userInfo.getResumeSummary();
+            
+            return ResponseEntity.ok(new IngestionResponse(
+                    true,
+                    "User info retrieved and deserialized successfully",
+                    Map.of(
+                            "hasGithub", githubStats != null,
+                            "hasLeetcode", leetcodeStats != null,
+                            "hasResume", resumeSummary != null,
+                            "githubRepos", githubStats != null ? githubStats.getTotalPinnedRepos() : 0,
+                            "leetcodeSolved", leetcodeStats != null ? leetcodeStats.getTotalSolved() : 0
+                    )
+            ));
+        } catch (Exception e) {
+            log.error("Error testing getUserInfo deserialization", e);
+            return ResponseEntity.ok(new IngestionResponse(
+                    false,
+                    "Error: " + e.getMessage(),
+                    Map.of("errorType", e.getClass().getSimpleName())
+            ));
+        }
     }
 
     public record IngestionResponse(

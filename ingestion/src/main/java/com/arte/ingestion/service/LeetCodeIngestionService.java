@@ -66,7 +66,7 @@ public class LeetCodeIngestionService {
                         .user(user)
                         .build());
 
-        userInfo.setLeetcodeStats(objectMapper.convertValue(stats, Map.class));
+        userInfo.setLeetcodeStats(stats);
         userInfo.setLastIngestedAt(Instant.now());
         userInfoRepository.save(userInfo);
 

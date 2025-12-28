@@ -1,9 +1,11 @@
 package com.arte.ingestion.grpc;
 
+import com.arte.ingestion.repository.UserInfoRepository;
 import com.arte.ingestion.service.GitHubIngestionService;
 import com.arte.ingestion.service.LeetCodeIngestionService;
 import com.arte.ingestion.service.LinkedInJobIngestionService;
 import com.arte.ingestion.service.ResumeProcessingService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +28,8 @@ class IngestionGrpcServiceImplTest {
     @Mock private LeetCodeIngestionService leetCodeIngestionService;
     @Mock private ResumeProcessingService resumeProcessingService;
     @Mock private LinkedInJobIngestionService linkedInJobIngestionService;
+    @Mock private UserInfoRepository userInfoRepository;
+    @Mock private ObjectMapper objectMapper;
     @Mock private StreamObserver<IngestGitHubResponse> githubObserver;
     @Mock private StreamObserver<IngestLeetCodeResponse> leetcodeObserver;
     @Mock private StreamObserver<IngestionHealthResponse> healthObserver;
@@ -38,7 +42,9 @@ class IngestionGrpcServiceImplTest {
                 gitHubIngestionService,
                 leetCodeIngestionService,
                 resumeProcessingService,
-                linkedInJobIngestionService
+                linkedInJobIngestionService,
+                userInfoRepository,
+                objectMapper
         );
     }
 

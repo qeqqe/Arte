@@ -1,10 +1,12 @@
-package com.arte.ingestion.entity.github;
+package com.arte.ingestion.dto.github;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.jackson.Jacksonized;
 
 @Data
 @Builder
+@Jacksonized
 public class RepoSummary {
     private String name;
     private String url;

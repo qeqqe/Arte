@@ -1,6 +1,8 @@
 package com.arte.apicore.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -11,6 +13,8 @@ import java.util.UUID;
 @SuppressWarnings("JpaDataSourceORMInspection")
 @Entity
 @Table(name = "user_info")
+@Getter
+@Setter
 public class UserInfo {
     @Id
     @Column(name = "user_id")
@@ -32,6 +36,16 @@ public class UserInfo {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "resume_summary", columnDefinition = "jsonb")
     private Map<String, Object> resumeSummary;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "processed_user_data", columnDefinition = "jsonb")
+    private Map<String, Object> processedUserData;
+
+    @Column(name = "processing_version", length = 10)
+    private String processingVersion;
+
+    @Column(name = "processed_at")
+    private Instant processedAt;
 
     @Column(name = "last_ingested_at")
     private Instant lastIngestedAt;

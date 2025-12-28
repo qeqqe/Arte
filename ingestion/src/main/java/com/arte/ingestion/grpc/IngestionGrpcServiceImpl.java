@@ -1,10 +1,14 @@
 package com.arte.ingestion.grpc;
 
+import com.arte.ingestion.entity.UserInfo;
+import com.arte.ingestion.mapper.IngestionProtoMapper;
+import com.arte.ingestion.repository.UserInfoRepository;
 import com.arte.ingestion.service.GitHubIngestionService;
 import com.arte.ingestion.service.LeetCodeIngestionService;
 import com.arte.ingestion.service.LinkedInJobIngestionService;
 import com.arte.ingestion.service.ResumeProcessingService;
 import com.arte.ingestion.util.ByteArrayMultipartFile;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,15 +23,22 @@ public class IngestionGrpcServiceImpl extends IngestionServiceGrpc.IngestionServ
     private final LeetCodeIngestionService leetCodeIngestionService;
     private final ResumeProcessingService resumeProcessingService;
     private final LinkedInJobIngestionService linkedInJobIngestionService;
+    private final UserInfoRepository userInfoRepository;
+    private final ObjectMapper objectMapper;
 
     public IngestionGrpcServiceImpl(
             GitHubIngestionService gitHubIngestionService,
             LeetCodeIngestionService leetCodeIngestionService,
-            ResumeProcessingService resumeProcessingService, LinkedInJobIngestionService linkedInJobIngestionService) {
+            ResumeProcessingService resumeProcessingService, 
+            LinkedInJobIngestionService linkedInJobIngestionService,
+            UserInfoRepository userInfoRepository,
+            ObjectMapper objectMapper) {
         this.gitHubIngestionService = gitHubIngestionService;
         this.leetCodeIngestionService = leetCodeIngestionService;
         this.resumeProcessingService = resumeProcessingService;
         this.linkedInJobIngestionService = linkedInJobIngestionService;
+        this.userInfoRepository = userInfoRepository;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -257,6 +268,46 @@ public class IngestionGrpcServiceImpl extends IngestionServiceGrpc.IngestionServ
         } catch (Exception e) {
             log.error("gRPC: Job ingestion failed for user: {}", request.getUserId(), e);
             var response = IngestLinkedInJobResponse.newBuilder()
+                    .setSuccess(false)
+                    .setMessage("Error: " + e.getMessage())
+                    .build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        }
+    }
+
+    @Override
+    public void getUserInfo(GetUserInfoRequest request, StreamObserver<GetUserInfoResponse> responseObserver) {
+        log.info("gRPC: Received getUserInfo request for user: {}", request.getUserId());
+        
+        try {
+            UUID userId = UUID.fromString(request.getUserId());
+            UserInfo userInfo = userInfoRepository.findById(userId).orElse(null);
+            
+            if (userInfo == null) {
+                var response = GetUserInfoResponse.newBuilder()
+                        .setSuccess(false)
+                        .setMessage("User info not found for user: " + userId)
+                        .build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+                return;
+            }
+            
+            UserInfoData userInfoData = IngestionProtoMapper.toProto(userInfo);
+            
+            var response = GetUserInfoResponse.newBuilder()
+                    .setSuccess(true)
+                    .setMessage("User info retrieved successfully")
+                    .setUserInfo(userInfoData)
+                    .build();
+            
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+            log.info("gRPC: getUserInfo completed for user: {}", userId);
+        } catch (Exception e) {
+            log.error("gRPC: getUserInfo failed for user: {}", request.getUserId(), e);
+            var response = GetUserInfoResponse.newBuilder()
                     .setSuccess(false)
                     .setMessage("Error: " + e.getMessage())
                     .build();
