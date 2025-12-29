@@ -1,9 +1,8 @@
-package com.arte.processing.dto.response;
+package com.arte.apicore.dto.processing;
 
 import java.util.List;
 
-
-public record ProcessedJobData(
+public record ProcessedJobDataDTO(
         String jobId,
         String jobTitle,
         String company,

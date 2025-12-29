@@ -1,13 +1,10 @@
 package com.arte.processing.processor;
 
-import com.arte.processing.dto.github.GitHubStats;
-import com.arte.processing.dto.leetcode.LeetCodeStats;
-import com.arte.processing.dto.resume.ResumeSummary;
 import com.arte.processing.entity.UserInfo;
 import com.arte.processing.entity.UserKnowledgeBase;
 import com.arte.processing.entity.Users;
-import com.arte.processing.grpc.ProcessedUserData;
 import com.arte.processing.processor.prompts.UserInfoAssistant;
+import com.arte.processing.dto.response.ProcessedUserData;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.model.openaiofficial.OpenAiOfficialChatModel;
@@ -37,7 +34,7 @@ public class UserInfoProcessor {
 
             log.info("Processing user info for user: {}", user.getId());
             
-            com.arte.processing.dto.response.ProcessedUserData result = assistant.analyzeUser(
+            ProcessedUserData result = assistant.analyzeUser(
                     githubData,
                     leetcodeData,
                     resumeData,
@@ -46,7 +43,7 @@ public class UserInfoProcessor {
 
             log.info("Successfully processed user info for: {}", user.getId());
             
-            return convertToProto(result);
+            return result;
             
         } catch (Exception e) {
             log.error("Error processing user info for user: {}", user.getId(), e);
@@ -80,55 +77,4 @@ public class UserInfoProcessor {
                 .collect(Collectors.joining("\n\n---\n\n"));
     }
 
-    private ProcessedUserData convertToProto(com.arte.processing.dto.response.ProcessedUserData dto) {
-        ProcessedUserData.Builder builder = ProcessedUserData.newBuilder()
-                .setUserId(dto.userId())
-                .setYearsOfExperience(dto.yearsOfExperience())
-                .setCareerLevel(dto.careerLevel() != null ? dto.careerLevel() : "");
-
-        if (dto.technicalSkills() != null) {
-            builder.addAllTechnicalSkills(dto.technicalSkills());
-        }
-        if (dto.softSkills() != null) {
-            builder.addAllSoftSkills(dto.softSkills());
-        }
-        if (dto.certifications() != null) {
-            builder.addAllCertifications(dto.certifications());
-        }
-        if (dto.education() != null) {
-            builder.addAllEducation(dto.education());
-        }
-        if (dto.programmingLanguages() != null) {
-            builder.addAllProgrammingLanguages(dto.programmingLanguages());
-        }
-        if (dto.frameworks() != null) {
-            builder.addAllFrameworks(dto.frameworks());
-        }
-        if (dto.tools() != null) {
-            builder.addAllTools(dto.tools());
-        }
-        if (dto.domains() != null) {
-            builder.addAllDomains(dto.domains());
-        }
-        if (dto.workExperiences() != null) {
-            dto.workExperiences().forEach(exp -> {
-                com.arte.processing.grpc.WorkExperience.Builder expBuilder = 
-                        com.arte.processing.grpc.WorkExperience.newBuilder()
-                        .setCompany(exp.company() != null ? exp.company() : "")
-                        .setRole(exp.role() != null ? exp.role() : "")
-                        .setDuration(exp.duration() != null ? exp.duration() : "");
-                
-                if (exp.technologies() != null) {
-                    expBuilder.addAllTechnologies(exp.technologies());
-                }
-                if (exp.achievements() != null) {
-                    expBuilder.addAllAchievements(exp.achievements());
-                }
-                
-                builder.addWorkExperiences(expBuilder.build());
-            });
-        }
-
-        return builder.build();
-    }
 }

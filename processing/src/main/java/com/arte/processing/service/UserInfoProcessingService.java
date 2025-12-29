@@ -1,57 +1,71 @@
 package com.arte.processing.service;
 
+import com.arte.processing.dto.response.ProcessedUserData;
+import com.arte.processing.entity.UserInfo;
 import com.arte.processing.entity.UserKnowledgeBase;
 import com.arte.processing.entity.Users;
 import com.arte.processing.exception.UserNotFoundException;
-import com.arte.processing.grpc.ProcessUserInfoRequest;
-import com.arte.processing.grpc.ProcessedUserData;
 import com.arte.processing.processor.UserInfoProcessor;
 import com.arte.processing.provider.LLMProvider;
+import com.arte.processing.repository.UserInfoRepository;
 import com.arte.processing.repository.UserKnowledgeBaseRepository;
 import com.arte.processing.repository.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class UserInfoProcessingService {
+
+    private static final String DEFAULT_VERSION = "v1";
 
     private final LLMProvider llmProvider;
     private final UserRepository userRepository;
+    private final UserInfoRepository userInfoRepository;
     private final UserKnowledgeBaseRepository userKnowledgeBaseRepository;
     private final UserInfoProcessor userInfoProcessor;
-
-    public UserInfoProcessingService(LLMProvider llmProvider, UserRepository userRepository, UserKnowledgeBaseRepository userKnowledgeBaseRepository, UserInfoProcessor userInfoProcessor) {
-        this.llmProvider = llmProvider;
-        this.userRepository = userRepository;
-        this.userKnowledgeBaseRepository = userKnowledgeBaseRepository;
-        this.userInfoProcessor = userInfoProcessor;
-    }
+    private final ObjectMapper objectMapper;
 
     @Transactional
-    public ProcessedUserData processUserInfo(ProcessUserInfoRequest request) throws IOException {
-        try {
-            UUID userId = UUID.fromString(request.getUserId());
-            log.info("Starting processing for the user: {}", userId);
+    public ProcessedUserData processUserInfo(UUID userId, String processingVersion) {
+        log.info("Starting user info processing for user: {}", userId);
 
-            Users user = userRepository.findByIdWithUserInfo(userId)
-                    .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
+        Users user = userRepository.findByIdWithUserInfo(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
 
-            List<UserKnowledgeBase> userKnowledgeBase = userKnowledgeBaseRepository
-                    .findByUserIdAndSourceTypes(userId, List.of("github", "leetcode", "resume"));
-
-            var model = llmProvider.getChatModel(user.getGithubToken());
-
-            return userInfoProcessor.process(user, user.getUserInfo(), userKnowledgeBase, model);
-
-        } catch(Exception e) {
-            log.error("Couldn't process the info for the user: {}", request.getUserId());
-            throw new IOException(e);
+        UserInfo userInfo = user.getUserInfo();
+        if (userInfo == null) {
+            throw new IllegalStateException("No user info found for user: " + userId);
         }
+
+        List<UserKnowledgeBase> knowledgeBase = userKnowledgeBaseRepository
+                .findByUserIdAndSourceTypes(userId, List.of("github", "leetcode", "resume"));
+
+        var model = llmProvider.getChatModel(user.getGithubToken());
+
+        ProcessedUserData result = userInfoProcessor.process(user, userInfo, knowledgeBase, model);
+
+        persistProcessedUserData(userInfo, result, processingVersion);
+
+        log.info("Successfully processed user info for user: {}", userId);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void persistProcessedUserData(UserInfo userInfo, ProcessedUserData data, String version) {
+        var dataMap = objectMapper.convertValue(data, java.util.Map.class);
+        userInfo.setProcessedUserData(dataMap);
+        userInfo.setProcessingVersion(version != null ? version : DEFAULT_VERSION);
+        userInfo.setProcessedAt(Instant.now());
+        userInfoRepository.save(userInfo);
+        log.debug("Persisted processed user data for user: {}", userInfo.getUserId());
     }
 }

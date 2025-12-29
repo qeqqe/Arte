@@ -1,20 +1,22 @@
 package com.arte.processing.service;
 
+import com.arte.processing.dto.response.ProcessedJobData;
+import com.arte.processing.dto.response.ProcessedUserData;
+import com.arte.processing.dto.response.UserJobComparison;
+import com.arte.processing.entity.UserJobComparisons;
 import com.arte.processing.entity.Users;
 import com.arte.processing.exception.UserNotFoundException;
-import com.arte.processing.grpc.ProcessUserAndJobRequest;
-import com.arte.processing.grpc.ProcessedJobData;
-import com.arte.processing.grpc.ProcessedUserData;
-import com.arte.processing.grpc.UserJobComparison;
 import com.arte.processing.processor.UserJobComparisonProcessor;
 import com.arte.processing.provider.LLMProvider;
+import com.arte.processing.repository.UserJobComparisonsRepository;
 import com.arte.processing.repository.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Service
@@ -22,43 +24,52 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserJobComparisonService {
 
+    private static final String DEFAULT_VERSION = "v1";
+
     private final LLMProvider llmProvider;
     private final UserRepository userRepository;
     private final UserInfoProcessingService userInfoProcessingService;
     private final JobInfoProcessingService jobInfoProcessingService;
     private final UserJobComparisonProcessor comparisonProcessor;
+    private final UserJobComparisonsRepository comparisonsRepository;
+    private final ObjectMapper objectMapper;
 
     @Transactional
-    public UserJobComparison compareUserAndJob(ProcessUserAndJobRequest request) throws IOException {
-        try {
-            UUID userId = UUID.fromString(request.getUserId());
-            String jobId = request.getJobId();
-            
-            log.info("Starting user-job comparison for user: {} and job: {}", userId, jobId);
+    public UserJobComparison compareUserAndJob(UUID userId, String jobId, String processingVersion) {
+        log.info("Starting user-job comparison for user: {} and job: {}", userId, jobId);
 
-            Users user = userRepository.findById(userId)
-                    .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
 
-            dev.langchain4j.model.openaiofficial.OpenAiOfficialChatModel model = llmProvider.getChatModel(user.getGithubToken());
+        var model = llmProvider.getChatModel(user.getGithubToken());
 
-            ProcessedUserData userData = userInfoProcessingService.processUserInfo(
-                    com.arte.processing.grpc.ProcessUserInfoRequest.newBuilder()
-                            .setUserId(request.getUserId())
-                            .build()
-            );
+        ProcessedUserData userData = userInfoProcessingService.processUserInfo(userId, processingVersion);
+        ProcessedJobData jobData = jobInfoProcessingService.processJobInfo(userId, jobId, processingVersion);
 
-            ProcessedJobData jobData = jobInfoProcessingService.processJobInfo(
-                    com.arte.processing.grpc.ProcessJobInfoRequest.newBuilder()
-                            .setUserId(request.getUserId())
-                            .setJobId(jobId)
-                            .build()
-            );
+        UserJobComparison result = comparisonProcessor.process(userData, jobData, model);
 
-            return comparisonProcessor.process(userData, jobData, model);
+        persistComparison(user, jobId, result, processingVersion);
 
-        } catch(Exception e) {
-            log.error("Couldn't compare user {} with job {}", request.getUserId(), request.getJobId(), e);
-            throw new IOException(e);
-        }
+        log.info("Successfully compared user {} with job {}", userId, jobId);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void persistComparison(Users user, String jobId, UserJobComparison comparison, String version) {
+        var dataMap = objectMapper.convertValue(comparison, java.util.Map.class);
+
+        UserJobComparisons entity = comparisonsRepository
+                .findByUserIdAndJobId(user.getId(), jobId)
+                .orElse(UserJobComparisons.builder()
+                        .user(user)
+                        .jobId(jobId)
+                        .build());
+
+        entity.setComparisonData(dataMap);
+        entity.setMatchScore(BigDecimal.valueOf(comparison.overallMatchScore()));
+        entity.setProcessingVersion(version != null ? version : DEFAULT_VERSION);
+
+        comparisonsRepository.save(entity);
+        log.debug("Persisted comparison for user: {} and job: {}", user.getId(), jobId);
     }
 }

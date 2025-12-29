@@ -14,8 +14,7 @@ service ProcessingService {
 
 message ProcessUserInfoRequest {
   string user_id = 1;
-  UserInfoData user_info = 2;
-  string processing_version = 3;
+  string processing_version = 2;
 }
 
 message ProcessUserInfoResponse {
@@ -25,9 +24,8 @@ message ProcessUserInfoResponse {
 }
 
 message ProcessJobInfoRequest {
-  string job_id = 1;
-  string raw_job_markdown = 2;
-  string processing_version = 3;
+  string user_id = 1;
+  string job_id = 2;
 }
 
 message ProcessJobInfoResponse {
@@ -38,67 +36,13 @@ message ProcessJobInfoResponse {
 
 message ProcessUserAndJobRequest {
   string user_id = 1;
-  ProcessedUserData processed_user = 2;
-  string job_id = 3;
-  ProcessedJobData processed_job = 4;
-  string processing_version = 5;
+  string job_id = 2;
 }
 
 message ProcessUserAndJobResponse {
   bool success = 1;
   string message = 2;
   UserJobComparison comparison = 3;
-}
-
-message UserInfoData {
-  string user_id = 1;
-  GitHubStats github_stats = 2;
-  LeetCodeStats leetcode_stats = 3;
-  ResumeSummary resume_summary = 4;
-}
-
-message GitHubStats {
-  int32 total_stars = 1;
-  int32 total_forks = 2;
-  int32 total_pinned_repos = 3;
-  repeated RepoSummary pinned_repos = 4;
-  map<string, int32> language_distribution = 5;
-  repeated string top_topics = 6;
-  string last_synced = 7;
-}
-
-message RepoSummary {
-  string name = 1;
-  string url = 2;
-  int32 stars = 3;
-  int32 forks = 4;
-  string primary_language = 5;
-}
-
-message LeetCodeStats {
-  string username = 1;
-  int32 total_solved = 2;
-  int32 easy_solved = 3;
-  int32 medium_solved = 4;
-  int32 hard_solved = 5;
-  int32 ranking = 6;
-  int32 reputation = 7;
-  double star_rating = 8;
-  int32 contests_attended = 9;
-  double contest_rating = 10;
-  int32 global_ranking = 11;
-  double top_percentage = 12;
-  map<string, int32> language_stats = 13;
-}
-
-message ResumeSummary {
-  string file_name = 1;
-  int32 word_count = 2;
-  string raw_text = 3;
-  repeated string skills = 4;
-  repeated string experiences = 5;
-  repeated string education = 6;
-  string summary = 7;
 }
 
 message ProcessedUserData {
@@ -117,11 +61,11 @@ message ProcessedUserData {
 }
 
 message WorkExperience {
-  string title = 1;
-  string company = 2;
+  string company = 1;
+  string role = 2;
   string duration = 3;
-  repeated string responsibilities = 4;
-  repeated string technologies = 5;
+  repeated string technologies = 4;
+  repeated string achievements = 5;
 }
 
 message ProcessedJobData {
@@ -156,6 +100,6 @@ message UserJobComparison {
 
 message SkillGap {
   string skill_name = 1;
-  string gap_type = 2;
-  string priority = 3;
+  string importance = 2;
+  string suggestion = 3;
 }

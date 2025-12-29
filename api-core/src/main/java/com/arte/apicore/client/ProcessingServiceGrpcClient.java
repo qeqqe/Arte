@@ -23,7 +23,7 @@ public class ProcessingServiceGrpcClient {
     @Value("${processing.grpc.port:50053}")
     private int grpcPort;
 
-    @Value("${processing.grpc.timeout-seconds:60}")
+    @Value("${processing.grpc.timeout-seconds:120}")
     private int timeoutSeconds;
 
     private ManagedChannel channel;
@@ -31,7 +31,7 @@ public class ProcessingServiceGrpcClient {
 
     @PostConstruct
     public void init() {
-        log.info("connecting to processing service at {}:{}", grpcHost, grpcPort);
+        log.info("Connecting to processing service at {}:{}", grpcHost, grpcPort);
         channel = ManagedChannelBuilder.forAddress(grpcHost, grpcPort)
                 .usePlaintext()
                 .build();
@@ -44,18 +44,17 @@ public class ProcessingServiceGrpcClient {
             try {
                 channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
-                log.warn("grpc channel shutdown interrupted", e);
+                log.warn("gRPC channel shutdown interrupted", e);
                 Thread.currentThread().interrupt();
             }
         }
     }
 
-    public ProcessUserInfoResponse processUserInfo(UUID userId, UserInfoData userInfo, String processingVersion) {
-        log.info("triggering user info processing for user: {}", userId);
+    public ProcessUserInfoResponse processUserInfo(UUID userId, String processingVersion) {
+        log.info("Triggering user info processing for user: {}", userId);
 
         ProcessUserInfoRequest request = ProcessUserInfoRequest.newBuilder()
                 .setUserId(userId.toString())
-                .setUserInfo(userInfo)
                 .setProcessingVersion(processingVersion != null ? processingVersion : "v1")
                 .build();
 
@@ -64,21 +63,20 @@ public class ProcessingServiceGrpcClient {
                     .withDeadlineAfter(timeoutSeconds, TimeUnit.SECONDS)
                     .processUserInfo(request);
         } catch (StatusRuntimeException e) {
-            log.error("grpc call failed: {}", e.getStatus(), e);
+            log.error("gRPC call failed: {}", e.getStatus(), e);
             return ProcessUserInfoResponse.newBuilder()
                     .setSuccess(false)
-                    .setMessage("grpc error: " + e.getStatus().getDescription())
+                    .setMessage("gRPC error: " + e.getStatus().getDescription())
                     .build();
         }
     }
 
-    public ProcessJobInfoResponse processJobInfo(String jobId, String rawJobMarkdown, String processingVersion) {
-        log.info("triggering job info processing for job: {}", jobId);
+    public ProcessJobInfoResponse processJobInfo(UUID userId, String jobId) {
+        log.info("Triggering job info processing for user: {}, job: {}", userId, jobId);
 
         ProcessJobInfoRequest request = ProcessJobInfoRequest.newBuilder()
+                .setUserId(userId.toString())
                 .setJobId(jobId)
-                .setRawJobMarkdown(rawJobMarkdown)
-                .setProcessingVersion(processingVersion != null ? processingVersion : "v1")
                 .build();
 
         try {
@@ -86,28 +84,20 @@ public class ProcessingServiceGrpcClient {
                     .withDeadlineAfter(timeoutSeconds, TimeUnit.SECONDS)
                     .processJobInfo(request);
         } catch (StatusRuntimeException e) {
-            log.error("grpc call failed: {}", e.getStatus(), e);
+            log.error("gRPC call failed: {}", e.getStatus(), e);
             return ProcessJobInfoResponse.newBuilder()
                     .setSuccess(false)
-                    .setMessage("grpc error: " + e.getStatus().getDescription())
+                    .setMessage("gRPC error: " + e.getStatus().getDescription())
                     .build();
         }
     }
 
-    public ProcessUserAndJobResponse processUserAndJob(
-            UUID userId, 
-            ProcessedUserData processedUser,
-            String jobId,
-            ProcessedJobData processedJob,
-            String processingVersion) {
-        log.info("triggering user-job comparison for user: {}, job: {}", userId, jobId);
+    public ProcessUserAndJobResponse compareUserAndJob(UUID userId, String jobId) {
+        log.info("Triggering user-job comparison for user: {}, job: {}", userId, jobId);
 
         ProcessUserAndJobRequest request = ProcessUserAndJobRequest.newBuilder()
                 .setUserId(userId.toString())
-                .setProcessedUser(processedUser)
                 .setJobId(jobId)
-                .setProcessedJob(processedJob)
-                .setProcessingVersion(processingVersion != null ? processingVersion : "v1")
                 .build();
 
         try {
@@ -115,11 +105,24 @@ public class ProcessingServiceGrpcClient {
                     .withDeadlineAfter(timeoutSeconds, TimeUnit.SECONDS)
                     .processUserAndJob(request);
         } catch (StatusRuntimeException e) {
-            log.error("grpc call failed: {}", e.getStatus(), e);
+            log.error("gRPC call failed: {}", e.getStatus(), e);
             return ProcessUserAndJobResponse.newBuilder()
                     .setSuccess(false)
-                    .setMessage("grpc error: " + e.getStatus().getDescription())
+                    .setMessage("gRPC error: " + e.getStatus().getDescription())
                     .build();
+        }
+    }
+
+    public boolean isHealthy() {
+        try {
+            ProcessUserInfoRequest healthCheck = ProcessUserInfoRequest.newBuilder()
+                    .setUserId("health-check")
+                    .build();
+            blockingStub.withDeadlineAfter(5, TimeUnit.SECONDS);
+            return true;
+        } catch (StatusRuntimeException e) {
+            log.warn("Processing service health check failed: {}", e.getStatus());
+            return false;
         }
     }
 }

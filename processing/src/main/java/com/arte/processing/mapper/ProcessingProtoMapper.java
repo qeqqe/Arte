@@ -1,124 +1,109 @@
 package com.arte.processing.mapper;
 
-import com.arte.processing.grpc.*;
-import java.util.List;
-import java.util.Map;
+import com.arte.processing.dto.response.ProcessedJobData;
+import com.arte.processing.dto.response.ProcessedUserData;
+import com.arte.processing.dto.response.SkillGap;
+import com.arte.processing.dto.response.UserJobComparison;
+import com.arte.processing.dto.response.WorkExperience;
 
-public class ProcessingProtoMapper {
+public final class ProcessingProtoMapper {
 
-    @SuppressWarnings("unchecked")
-    public static ProcessedUserData toProcessedUserData(Map<String, Object> data) {
-        if (data == null) return ProcessedUserData.getDefaultInstance();
+    private ProcessingProtoMapper() {}
 
-        var builder = ProcessedUserData.newBuilder()
-                .setUserId(getString(data, "userId"))
-                .setYearsOfExperience(getInt(data, "yearsOfExperience"))
-                .setCareerLevel(getString(data, "careerLevel"));
+    public static com.arte.processing.grpc.ProcessedUserData toProto(ProcessedUserData dto) {
+        if (dto == null) return com.arte.processing.grpc.ProcessedUserData.getDefaultInstance();
 
-        addListStrings(data, "technicalSkills", builder::addTechnicalSkills);
-        addListStrings(data, "softSkills", builder::addSoftSkills);
-        addListStrings(data, "certifications", builder::addCertifications);
-        addListStrings(data, "education", builder::addEducation);
-        addListStrings(data, "programmingLanguages", builder::addProgrammingLanguages);
-        addListStrings(data, "frameworks", builder::addFrameworks);
-        addListStrings(data, "tools", builder::addTools);
-        addListStrings(data, "domains", builder::addDomains);
+        var builder = com.arte.processing.grpc.ProcessedUserData.newBuilder()
+                .setUserId(safe(dto.userId()))
+                .setYearsOfExperience(dto.yearsOfExperience())
+                .setCareerLevel(safe(dto.careerLevel()));
 
-        Object workExp = data.get("workExperiences");
-        if (workExp instanceof List) {
-            ((List<Map<String, Object>>) workExp).forEach(exp ->
-                    builder.addWorkExperiences(toWorkExperience(exp)));
+        if (dto.technicalSkills() != null) builder.addAllTechnicalSkills(dto.technicalSkills());
+        if (dto.softSkills() != null) builder.addAllSoftSkills(dto.softSkills());
+        if (dto.certifications() != null) builder.addAllCertifications(dto.certifications());
+        if (dto.education() != null) builder.addAllEducation(dto.education());
+        if (dto.programmingLanguages() != null) builder.addAllProgrammingLanguages(dto.programmingLanguages());
+        if (dto.frameworks() != null) builder.addAllFrameworks(dto.frameworks());
+        if (dto.tools() != null) builder.addAllTools(dto.tools());
+        if (dto.domains() != null) builder.addAllDomains(dto.domains());
+
+        if (dto.workExperiences() != null) {
+            dto.workExperiences().forEach(exp -> builder.addWorkExperiences(toProto(exp)));
         }
 
         return builder.build();
     }
 
-    @SuppressWarnings("unchecked")
-    private static WorkExperience toWorkExperience(Map<String, Object> data) {
-        var builder = WorkExperience.newBuilder()
-                .setCompany(getString(data, "company"))
-                .setRole(getString(data, "role"))
-                .setDuration(getString(data, "duration"));
+    public static com.arte.processing.grpc.WorkExperience toProto(WorkExperience dto) {
+        if (dto == null) return com.arte.processing.grpc.WorkExperience.getDefaultInstance();
 
-        addListStrings(data, "achievements", builder::addAchievements);
-        addListStrings(data, "technologies", builder::addTechnologies);
+        var builder = com.arte.processing.grpc.WorkExperience.newBuilder()
+                .setCompany(safe(dto.company()))
+                .setRole(safe(dto.role()))
+                .setDuration(safe(dto.duration()));
 
-        return builder.build();
-    }
-
-    @SuppressWarnings("unchecked")
-    public static ProcessedJobData toProcessedJobData(Map<String, Object> data) {
-        if (data == null) return ProcessedJobData.getDefaultInstance();
-
-        var builder = ProcessedJobData.newBuilder()
-                .setJobId(getString(data, "jobId"))
-                .setJobTitle(getString(data, "jobTitle"))
-                .setCompany(getString(data, "company"))
-                .setMinYearsExperience(getInt(data, "minYearsExperience"))
-                .setMaxYearsExperience(getInt(data, "maxYearsExperience"))
-                .setCareerLevel(getString(data, "careerLevel"));
-
-        addListStrings(data, "requiredSkills", builder::addRequiredSkills);
-        addListStrings(data, "preferredSkills", builder::addPreferredSkills);
-        addListStrings(data, "requiredEducation", builder::addRequiredEducation);
-        addListStrings(data, "programmingLanguages", builder::addProgrammingLanguages);
-        addListStrings(data, "frameworks", builder::addFrameworks);
-        addListStrings(data, "tools", builder::addTools);
-        addListStrings(data, "domains", builder::addDomains);
-        addListStrings(data, "responsibilities", builder::addResponsibilities);
+        if (dto.technologies() != null) builder.addAllTechnologies(dto.technologies());
+        if (dto.achievements() != null) builder.addAllAchievements(dto.achievements());
 
         return builder.build();
     }
 
-    @SuppressWarnings("unchecked")
-    public static UserJobComparison toUserJobComparison(Map<String, Object> data) {
-        if (data == null) return UserJobComparison.getDefaultInstance();
+    public static com.arte.processing.grpc.ProcessedJobData toProto(ProcessedJobData dto) {
+        if (dto == null) return com.arte.processing.grpc.ProcessedJobData.getDefaultInstance();
 
-        var builder = UserJobComparison.newBuilder()
-                .setUserId(getString(data, "userId"))
-                .setJobId(getString(data, "jobId"))
-                .setOverallMatchScore(getInt(data, "overallMatchScore"))
-                .setSkillsMatchScore(getInt(data, "skillsMatchScore"))
-                .setExperienceMatchScore(getInt(data, "experienceMatchScore"))
-                .setEducationMatchScore(getInt(data, "educationMatchScore"))
-                .setFitAssessment(getString(data, "fitAssessment"));
+        var builder = com.arte.processing.grpc.ProcessedJobData.newBuilder()
+                .setJobId(safe(dto.jobId()))
+                .setJobTitle(safe(dto.jobTitle()))
+                .setCompany(safe(dto.company()))
+                .setMinYearsExperience(dto.minYearsExperience())
+                .setMaxYearsExperience(dto.maxYearsExperience())
+                .setCareerLevel(safe(dto.careerLevel()));
 
-        addListStrings(data, "strengths", builder::addStrengths);
-        addListStrings(data, "recommendations", builder::addRecommendations);
+        if (dto.requiredSkills() != null) builder.addAllRequiredSkills(dto.requiredSkills());
+        if (dto.preferredSkills() != null) builder.addAllPreferredSkills(dto.preferredSkills());
+        if (dto.requiredEducation() != null) builder.addAllRequiredEducation(dto.requiredEducation());
+        if (dto.programmingLanguages() != null) builder.addAllProgrammingLanguages(dto.programmingLanguages());
+        if (dto.frameworks() != null) builder.addAllFrameworks(dto.frameworks());
+        if (dto.tools() != null) builder.addAllTools(dto.tools());
+        if (dto.domains() != null) builder.addAllDomains(dto.domains());
+        if (dto.responsibilities() != null) builder.addAllResponsibilities(dto.responsibilities());
 
-        Object gaps = data.get("skillGaps");
-        if (gaps instanceof List) {
-            ((List<Map<String, Object>>) gaps).forEach(gap ->
-                    builder.addSkillGaps(toSkillGap(gap)));
+        return builder.build();
+    }
+
+    public static com.arte.processing.grpc.UserJobComparison toProto(UserJobComparison dto) {
+        if (dto == null) return com.arte.processing.grpc.UserJobComparison.getDefaultInstance();
+
+        var builder = com.arte.processing.grpc.UserJobComparison.newBuilder()
+                .setUserId(safe(dto.userId()))
+                .setJobId(safe(dto.jobId()))
+                .setOverallMatchScore(dto.overallMatchScore())
+                .setSkillsMatchScore(dto.skillsMatchScore())
+                .setExperienceMatchScore(dto.experienceMatchScore())
+                .setEducationMatchScore(dto.educationMatchScore())
+                .setFitAssessment(safe(dto.fitAssessment()));
+
+        if (dto.strengths() != null) builder.addAllStrengths(dto.strengths());
+        if (dto.recommendations() != null) builder.addAllRecommendations(dto.recommendations());
+
+        if (dto.skillGaps() != null) {
+            dto.skillGaps().forEach(gap -> builder.addSkillGaps(toProto(gap)));
         }
 
         return builder.build();
     }
 
-    private static SkillGap toSkillGap(Map<String, Object> data) {
-        return SkillGap.newBuilder()
-                .setSkillName(getString(data, "skillName"))
-                .setImportance(getString(data, "importance"))
-                .setSuggestion(getString(data, "suggestion"))
+    public static com.arte.processing.grpc.SkillGap toProto(SkillGap dto) {
+        if (dto == null) return com.arte.processing.grpc.SkillGap.getDefaultInstance();
+
+        return com.arte.processing.grpc.SkillGap.newBuilder()
+                .setSkillName(safe(dto.skillName()))
+                .setImportance(safe(dto.importance()))
+                .setSuggestion(safe(dto.suggestion()))
                 .build();
     }
 
-    private static void addListStrings(Map<String, Object> data, String key, java.util.function.Consumer<String> adder) {
-        Object list = data.get(key);
-        if (list instanceof List) {
-            ((List<?>) list).forEach(item -> {
-                if (item != null) adder.accept(item.toString());
-            });
-        }
-    }
-
-    private static String getString(Map<String, Object> map, String key) {
-        Object value = map.get(key);
-        return value != null ? value.toString() : "";
-    }
-
-    private static int getInt(Map<String, Object> map, String key) {
-        Object value = map.get(key);
-        return (value instanceof Number) ? ((Number) value).intValue() : 0;
+    private static String safe(String s) {
+        return s != null ? s : "";
     }
 }
