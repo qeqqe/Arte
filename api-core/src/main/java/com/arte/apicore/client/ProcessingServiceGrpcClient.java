@@ -50,12 +50,11 @@ public class ProcessingServiceGrpcClient {
         }
     }
 
-    public ProcessUserInfoResponse processUserInfo(UUID userId, String processingVersion) {
+    public ProcessUserInfoResponse processUserInfo(UUID userId) {
         log.info("Triggering user info processing for user: {}", userId);
 
         ProcessUserInfoRequest request = ProcessUserInfoRequest.newBuilder()
                 .setUserId(userId.toString())
-                .setProcessingVersion(processingVersion != null ? processingVersion : "v1")
                 .build();
 
         try {

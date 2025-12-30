@@ -35,11 +35,13 @@ public class UserInfoProcessor {
             log.info("Processing user info for user: {}", user.getId());
             
             ProcessedUserData result = assistant.analyzeUser(
+                    String.valueOf(user.getId()),
                     githubData,
                     leetcodeData,
                     resumeData,
                     knowledgeBaseData
             );
+            log.info("Result for the processed user data: {}", serializeToJson(result));
 
             log.info("Successfully processed user info for: {}", user.getId());
             

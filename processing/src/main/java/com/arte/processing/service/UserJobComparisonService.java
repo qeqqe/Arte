@@ -3,6 +3,7 @@ package com.arte.processing.service;
 import com.arte.processing.dto.response.ProcessedJobData;
 import com.arte.processing.dto.response.ProcessedUserData;
 import com.arte.processing.dto.response.UserJobComparison;
+import com.arte.processing.entity.UserInfo;
 import com.arte.processing.entity.UserJobComparisons;
 import com.arte.processing.entity.Users;
 import com.arte.processing.exception.UserNotFoundException;
@@ -42,8 +43,11 @@ public class UserJobComparisonService {
                 .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
 
         var model = llmProvider.getChatModel(user.getGithubToken());
-
-        ProcessedUserData userData = userInfoProcessingService.processUserInfo(userId, processingVersion);
+        UserInfo userInfo = user.getUserInfo();
+        ProcessedUserData userData = userInfo.getProcessedUserData();
+        if(userData == null){
+            userData = userInfoProcessingService.processUserInfo(userId);
+        }
         ProcessedJobData jobData = jobInfoProcessingService.processJobInfo(userId, jobId, processingVersion);
 
         UserJobComparison result = comparisonProcessor.process(userData, jobData, model);

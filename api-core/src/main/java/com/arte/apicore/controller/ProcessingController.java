@@ -20,14 +20,12 @@ public class ProcessingController {
         this.processingClient = processingClient;
     }
 
-    @PostMapping("/user")
+    @GetMapping("/user")
     public ResponseEntity<ProcessUserResponse> processUser(
-            @RequestBody(required = false) ProcessUserRequest request,
             @AuthenticationPrincipal UserPrincipal user
     ) {
-        String version = request != null ? request.processingVersion() : "v1";
         ProcessUserInfoResponse response = processingClient.processUserInfo(
-                UUID.fromString(user.userId()), version
+                UUID.fromString(user.userId())
         );
 
         return ResponseEntity.ok(new ProcessUserResponse(

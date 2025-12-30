@@ -3,6 +3,7 @@ package com.arte.processing.processor.prompts;
 import com.arte.processing.dto.response.UserJobComparison;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
+import dev.langchain4j.service.V;
 
 public interface UserJobComparisonAssistant {
 
@@ -30,5 +31,5 @@ public interface UserJobComparisonAssistant {
             Job Requirements:
             {{jobData}}
             """)
-    UserJobComparison compareUserAndJob(String candidateData, String jobData);
+    UserJobComparison compareUserAndJob(@V("candidateData") String candidateData,@V("jobData") String jobData);
 }

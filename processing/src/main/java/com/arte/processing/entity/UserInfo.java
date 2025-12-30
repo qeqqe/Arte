@@ -1,5 +1,6 @@
 package com.arte.processing.entity;
 
+import com.arte.processing.dto.response.ProcessedUserData;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -51,7 +52,7 @@ public class UserInfo {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "processed_user_data", columnDefinition = "jsonb")
     @Basic(fetch = FetchType.LAZY)
-    private Map<String, Object> processedUserData;
+    private ProcessedUserData processedUserData;
 
     @Column(name = "processing_version", length = 10)
     private String processingVersion;

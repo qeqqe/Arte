@@ -35,13 +35,15 @@ public class UserInfoProcessingService {
     private final ObjectMapper objectMapper;
 
     @Transactional
-    public ProcessedUserData processUserInfo(UUID userId, String processingVersion) {
+    public ProcessedUserData processUserInfo(UUID userId) {
         log.info("Starting user info processing for user: {}", userId);
 
         Users user = userRepository.findByIdWithUserInfo(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
 
         UserInfo userInfo = user.getUserInfo();
+        String processingVersion  = userInfo.getProcessingVersion();
+        processingVersion = processingVersion == null ? DEFAULT_VERSION : "v" + (Integer.parseInt(processingVersion.substring(1)) + 1);
         if (userInfo == null) {
             throw new IllegalStateException("No user info found for user: " + userId);
         }
@@ -59,10 +61,8 @@ public class UserInfoProcessingService {
         return result;
     }
 
-    @SuppressWarnings("unchecked")
     private void persistProcessedUserData(UserInfo userInfo, ProcessedUserData data, String version) {
-        var dataMap = objectMapper.convertValue(data, java.util.Map.class);
-        userInfo.setProcessedUserData(dataMap);
+        userInfo.setProcessedUserData(data);
         userInfo.setProcessingVersion(version != null ? version : DEFAULT_VERSION);
         userInfo.setProcessedAt(Instant.now());
         userInfoRepository.save(userInfo);

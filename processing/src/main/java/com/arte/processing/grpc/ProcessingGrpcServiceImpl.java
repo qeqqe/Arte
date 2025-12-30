@@ -10,11 +10,12 @@ import com.arte.processing.service.UserJobComparisonService;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
-@Service
+@GrpcService
 @Slf4j
 @RequiredArgsConstructor
 public class ProcessingGrpcServiceImpl extends ProcessingServiceGrpc.ProcessingServiceImplBase {
@@ -29,9 +30,8 @@ public class ProcessingGrpcServiceImpl extends ProcessingServiceGrpc.ProcessingS
 
         try {
             UUID userId = UUID.fromString(request.getUserId());
-            String version = request.getProcessingVersion().isEmpty() ? "v1" : request.getProcessingVersion();
 
-            ProcessedUserData result = userInfoProcessingService.processUserInfo(userId, version);
+            ProcessedUserData result = userInfoProcessingService.processUserInfo(userId);
 
             var response = ProcessUserInfoResponse.newBuilder()
                     .setSuccess(true)

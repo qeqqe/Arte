@@ -14,7 +14,6 @@ service ProcessingService {
 
 message ProcessUserInfoRequest {
   string user_id = 1;
-  string processing_version = 3;
 }
 
 message ProcessUserInfoResponse {

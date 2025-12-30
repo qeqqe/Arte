@@ -1,8 +1,10 @@
 package com.arte.processing.processor.prompts;
 
 import com.arte.processing.dto.response.ProcessedUserData;
+import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
+import dev.langchain4j.service.V;
 
 public interface UserInfoAssistant {
 
@@ -37,5 +39,11 @@ public interface UserInfoAssistant {
             Knowledge Base Entries:
             {{knowledgeBase}}
             """)
-    ProcessedUserData analyzeUser(String githubData, String leetcodeData, String resumeData, String knowledgeBase);
+    ProcessedUserData analyzeUser(
+            @V("userId") String userId,
+            @V("githubData") String githubData,
+            @V("leetcodeData") String leetcodeData,
+            @V("resumeData") String resumeData,
+            @V("knowledgeBase") String knowledgeBase
+    );
 }

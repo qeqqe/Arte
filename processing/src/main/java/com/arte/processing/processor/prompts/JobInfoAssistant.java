@@ -3,6 +3,7 @@ package com.arte.processing.processor.prompts;
 import com.arte.processing.dto.response.ProcessedJobData;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
+import dev.langchain4j.service.V;
 
 public interface JobInfoAssistant {
 
@@ -29,5 +30,5 @@ public interface JobInfoAssistant {
             Job Posting:
             {{jobContent}}
             """)
-    ProcessedJobData analyzeJob(String jobContent);
+    ProcessedJobData analyzeJob(@V("jobContent") String jobContent);
 }
