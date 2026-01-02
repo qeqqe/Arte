@@ -36,7 +36,7 @@ public class UserJobComparisonService {
     private final ObjectMapper objectMapper;
 
     @Transactional
-    public UserJobComparison compareUserAndJob(UUID userId, String jobId, String processingVersion) {
+    public UserJobComparison compareUserAndJob(UUID userId, String jobId) {
         log.info("Starting user-job comparison for user: {} and job: {}", userId, jobId);
 
         Users user = userRepository.findById(userId)
@@ -45,8 +45,14 @@ public class UserJobComparisonService {
         var model = llmProvider.getChatModel(user.getGithubToken());
         UserInfo userInfo = user.getUserInfo();
         ProcessedUserData userData = userInfo.getProcessedUserData();
+
+        String processingVersion = comparisonsRepository
+                .findByUserIdAndJobId(userId, jobId)
+                .map(UserJobComparisons::getProcessingVersion)
+                .orElse("V1");
+        
         if(userData == null){
-            userData = userInfoProcessingService.processUserInfo(userId);
+            userData = userInfoProcessingService.processUserInfo(user);
         }
         ProcessedJobData jobData = jobInfoProcessingService.processJobInfo(userId, jobId, processingVersion);
 

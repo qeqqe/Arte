@@ -31,7 +31,7 @@ public class ProcessingGrpcServiceImpl extends ProcessingServiceGrpc.ProcessingS
         try {
             UUID userId = UUID.fromString(request.getUserId());
 
-            ProcessedUserData result = userInfoProcessingService.processUserInfo(userId);
+            ProcessedUserData result = userInfoProcessingService.processUserInfoId(userId);
 
             var response = ProcessUserInfoResponse.newBuilder()
                     .setSuccess(true)
@@ -89,7 +89,7 @@ public class ProcessingGrpcServiceImpl extends ProcessingServiceGrpc.ProcessingS
             UUID userId = UUID.fromString(request.getUserId());
             String jobId = request.getJobId();
 
-            UserJobComparison result = userJobComparisonService.compareUserAndJob(userId, jobId, "v1");
+            UserJobComparison result = userJobComparisonService.compareUserAndJob(userId, jobId);
 
             var response = ProcessUserAndJobResponse.newBuilder()
                     .setSuccess(true)

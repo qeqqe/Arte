@@ -21,4 +21,7 @@ public interface UserJobComparisonsRepository extends JpaRepository<UserJobCompa
 
     @Query("SELECT ujc FROM UserJobComparisons ujc WHERE ujc.user.id = :userId ORDER BY ujc.matchScore DESC")
     List<UserJobComparisons> findByUserIdOrderByMatchScore(@Param("userId") UUID userId);
+
+    // if it exists with
+    boolean existsByUserIdAndJobId(UUID userId, String jobId);
 }

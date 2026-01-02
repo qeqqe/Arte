@@ -35,18 +35,13 @@ public class UserInfoProcessingService {
     private final ObjectMapper objectMapper;
 
     @Transactional
-    public ProcessedUserData processUserInfo(UUID userId) {
+    public ProcessedUserData processUserInfo(Users user) {
+        UUID userId = user.getId();
         log.info("Starting user info processing for user: {}", userId);
-
-        Users user = userRepository.findByIdWithUserInfo(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
 
         UserInfo userInfo = user.getUserInfo();
         String processingVersion  = userInfo.getProcessingVersion();
         processingVersion = processingVersion == null ? DEFAULT_VERSION : "v" + (Integer.parseInt(processingVersion.substring(1)) + 1);
-        if (userInfo == null) {
-            throw new IllegalStateException("No user info found for user: " + userId);
-        }
 
         List<UserKnowledgeBase> knowledgeBase = userKnowledgeBaseRepository
                 .findByUserIdAndSourceTypes(userId, List.of("github", "leetcode", "resume"));
@@ -61,7 +56,15 @@ public class UserInfoProcessingService {
         return result;
     }
 
-    private void persistProcessedUserData(UserInfo userInfo, ProcessedUserData data, String version) {
+    @Transactional
+    public ProcessedUserData processUserInfoId(UUID userId) {
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
+        return processUserInfo(user);
+    }
+
+
+        private void persistProcessedUserData(UserInfo userInfo, ProcessedUserData data, String version) {
         userInfo.setProcessedUserData(data);
         userInfo.setProcessingVersion(version != null ? version : DEFAULT_VERSION);
         userInfo.setProcessedAt(Instant.now());

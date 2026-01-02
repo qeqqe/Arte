@@ -35,7 +35,7 @@ message ProcessJobInfoResponse {
 
 message ProcessUserAndJobRequest {
   string user_id = 1;
-  string job_id = 3;
+  string job_id = 2;
 }
 
 message ProcessUserAndJobResponse {

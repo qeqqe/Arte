@@ -20,7 +20,7 @@ public class JobInfoProcessor {
 
             log.info("Processing job: {}", job.getJobId());
             
-            ProcessedJobData result = assistant.analyzeJob(job.getRawContent());
+            ProcessedJobData result = assistant.analyzeJob(job.getRawContent(), job.getJobId());
 
             log.info("Successfully processed job: {}", job.getJobId());
             

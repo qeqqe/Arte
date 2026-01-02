@@ -29,6 +29,10 @@ public interface JobInfoAssistant {
     @UserMessage("""
             Job Posting:
             {{jobContent}}
+            Job Id:
+            {{jobId}}
             """)
-    ProcessedJobData analyzeJob(@V("jobContent") String jobContent);
+    ProcessedJobData analyzeJob(@V("jobContent") String jobContent,
+            @V("jobId") String jobId
+            );
 }

@@ -30,6 +30,14 @@ public interface UserJobComparisonAssistant {
             
             Job Requirements:
             {{jobData}}
+            Job Id:
+            {{jobId}}
+            Candidate User Id:
+            {{userId}}
             """)
-    UserJobComparison compareUserAndJob(@V("candidateData") String candidateData,@V("jobData") String jobData);
+    UserJobComparison compareUserAndJob(@V("candidateData") String candidateData,
+                                        @V("jobData") String jobData,
+                                        @V("jobId") String jobId,
+                                        @V("userId") String userId
+    );
 }

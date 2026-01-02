@@ -30,7 +30,9 @@ public class UserJobComparisonProcessor {
 
         UserJobComparison result = assistant.compareUserAndJob(
                     candidateJson,
-                    jobJson
+                    jobJson,
+                    jobData.jobId(),
+                    userData.userId()
             );
 
             log.info("Successfully compared user {} with job {}", userData.userId(), jobData.jobId());

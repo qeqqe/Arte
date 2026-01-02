@@ -27,6 +27,8 @@ public interface UserInfoAssistant {
             Deduplicate skills across sources. Infer additional skills from project descriptions.
             """)
     @UserMessage("""
+            User Id:
+            {{userId}}
             GitHub Data:
             {{githubData}}
             
