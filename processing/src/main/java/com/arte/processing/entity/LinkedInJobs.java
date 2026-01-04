@@ -1,5 +1,6 @@
 package com.arte.processing.entity;
 
+import com.arte.processing.dto.response.ProcessedJobData;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,7 +35,7 @@ public class LinkedInJobs {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "processed_job_data", columnDefinition = "jsonb")
-    private Map<String, Object> processedJobData;
+    private ProcessedJobData processedJobData;
 
     @Column(name = "processing_version", length = 10)
     private String processingVersion;

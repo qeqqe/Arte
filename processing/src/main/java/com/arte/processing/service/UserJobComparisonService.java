@@ -3,12 +3,15 @@ package com.arte.processing.service;
 import com.arte.processing.dto.response.ProcessedJobData;
 import com.arte.processing.dto.response.ProcessedUserData;
 import com.arte.processing.dto.response.UserJobComparison;
+import com.arte.processing.entity.LinkedInJobs;
 import com.arte.processing.entity.UserInfo;
 import com.arte.processing.entity.UserJobComparisons;
 import com.arte.processing.entity.Users;
+import com.arte.processing.exception.JobNotFoundException;
 import com.arte.processing.exception.UserNotFoundException;
 import com.arte.processing.processor.UserJobComparisonProcessor;
 import com.arte.processing.provider.LLMProvider;
+import com.arte.processing.repository.LinkedInJobsRepository;
 import com.arte.processing.repository.UserJobComparisonsRepository;
 import com.arte.processing.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,35 +36,67 @@ public class UserJobComparisonService {
     private final JobInfoProcessingService jobInfoProcessingService;
     private final UserJobComparisonProcessor comparisonProcessor;
     private final UserJobComparisonsRepository comparisonsRepository;
+    private final LinkedInJobsRepository linkedInJobsRepository;
     private final ObjectMapper objectMapper;
 
     @Transactional
     public UserJobComparison compareUserAndJob(UUID userId, String jobId) {
         log.info("Starting user-job comparison for user: {} and job: {}", userId, jobId);
 
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
+        Users user = fetchUser(userId);
+        LinkedInJobs job = fetchJob(jobId);
+
+        ProcessedUserData userData = getOrProcessUserData(user);
+        ProcessedJobData jobData = getOrProcessJobData(userId, job, DEFAULT_VERSION);
 
         var model = llmProvider.getChatModel(user.getGithubToken());
-        UserInfo userInfo = user.getUserInfo();
-        ProcessedUserData userData = userInfo.getProcessedUserData();
-
-        String processingVersion = comparisonsRepository
-                .findByUserIdAndJobId(userId, jobId)
-                .map(UserJobComparisons::getProcessingVersion)
-                .orElse("V1");
-        
-        if(userData == null){
-            userData = userInfoProcessingService.processUserInfo(user);
-        }
-        ProcessedJobData jobData = jobInfoProcessingService.processJobInfo(userId, jobId, processingVersion);
-
         UserJobComparison result = comparisonProcessor.process(userData, jobData, model);
 
+        String processingVersion = getExistingProcessingVersion(userId, jobId);
         persistComparison(user, jobId, result, processingVersion);
 
         log.info("Successfully compared user {} with job {}", userId, jobId);
         return result;
+    }
+
+    private Users fetchUser(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
+    }
+
+    private LinkedInJobs fetchJob(String jobId) {
+        return linkedInJobsRepository.findByJobId(jobId)
+                .orElseThrow(() -> new JobNotFoundException("Job not found: " + jobId));
+    }
+
+    private ProcessedUserData getOrProcessUserData(Users user) {
+        UserInfo userInfo = user.getUserInfo();
+        ProcessedUserData userData = userInfo.getProcessedUserData();
+
+        if (userData == null) {
+            log.debug("Processing user data for user: {}", user.getId());
+            userData = userInfoProcessingService.processUserInfo(user);
+        }
+
+        return userData;
+    }
+
+    private ProcessedJobData getOrProcessJobData(UUID userId, LinkedInJobs job, String version) {
+        ProcessedJobData jobData = job.getProcessedJobData();
+
+        if (jobData == null) {
+            log.debug("Processing job data for job: {}", job.getJobId());
+            jobData = jobInfoProcessingService.processJobInfo(userId, job.getJobId(), version);
+        }
+
+        return jobData;
+    }
+
+    private String getExistingProcessingVersion(UUID userId, String jobId) {
+        return comparisonsRepository
+                .findByUserIdAndJobId(userId, jobId)
+                .map(UserJobComparisons::getProcessingVersion)
+                .orElse(DEFAULT_VERSION);
     }
 
     @SuppressWarnings("unchecked")

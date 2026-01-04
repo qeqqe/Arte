@@ -52,8 +52,7 @@ public class JobInfoProcessingService {
 
     @SuppressWarnings("unchecked")
     private void persistProcessedJobData(LinkedInJobs job, ProcessedJobData data, String version) {
-        var dataMap = objectMapper.convertValue(data, java.util.Map.class);
-        job.setProcessedJobData(dataMap);
+        job.setProcessedJobData(data);
         job.setProcessingVersion(version != null ? version : DEFAULT_VERSION);
         job.setProcessedAt(Instant.now());
         jobsRepository.save(job);
