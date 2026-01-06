@@ -27,7 +27,9 @@ export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState<Step>("github");
 
   useEffect(() => {
-    if (userError) {
+    if (!userError) return;
+    const status = (userError as any)?.status;
+    if (status === 401) {
       router.push("/");
     }
   }, [userError, router]);
@@ -56,6 +58,15 @@ export default function OnboardingPage() {
 
   if (!user) {
     return null;
+  }
+
+  if (userError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center flex-col gap-4">
+        <p className="text-red-500">Error loading user: {(userError as any)?.message || "Unexpected error"}</p>
+        <Button onClick={() => window.location.reload()}>Retry</Button>
+      </div>
+    );
   }
 
   const completedSteps = [

@@ -35,11 +35,13 @@ export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    setMounted(true); 
   }, []);
 
   useEffect(() => {
-    if (userError) {
+    if (!userError) return;
+    const status = (userError as any)?.status;
+    if (status === 401) {
       router.push("/");
     }
   }, [userError, router]);
@@ -54,6 +56,15 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (userError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center flex-col gap-4">
+        <p className="text-red-500">Error loading user: {(userError as any)?.message || "Unexpected error"}</p>
+        <Button onClick={() => window.location.reload()}>Retry</Button>
       </div>
     );
   }
