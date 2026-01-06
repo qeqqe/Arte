@@ -1,7 +1,6 @@
 package com.arte.apicore.controller;
 
 import com.arte.apicore.dto.*;
-import com.arte.apicore.entity.LinkedInJobs;
 import com.arte.apicore.entity.UserInfo;
 import com.arte.apicore.entity.UserJobComparisons;
 import com.arte.apicore.entity.Users;
@@ -14,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;

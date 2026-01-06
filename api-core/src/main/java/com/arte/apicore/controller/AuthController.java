@@ -3,7 +3,9 @@ package com.arte.apicore.controller;
 import com.arte.apicore.dto.TokenResponse;
 import com.arte.apicore.entity.Users;
 import com.arte.apicore.exception.InvalidTokenException;
+import com.arte.apicore.exception.UserNotFoundException;
 import com.arte.apicore.service.auth.strategy.JwtTokenProvider;
+import com.arte.apicore.service.auth.strategy.UserPrincipal;
 import com.arte.apicore.service.user.UserService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
@@ -11,11 +13,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -77,10 +81,11 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<Map<String, Object>> getCurrentUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String githubUsername = auth.getName();
-        Users user = userService.getCurrentUser(githubUsername);
+    public ResponseEntity<Map<String, Object>> getCurrentUser(
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        UUID userId = UUID.fromString(userPrincipal.userId());
+        Users user = userService.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + userPrincipal));
 
         Map<String, Object> response = new HashMap<>();
         response.put("id", user.getId());
