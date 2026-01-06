@@ -33,7 +33,7 @@ public class LeetCodeIngestionService {
     private final ObjectMapper objectMapper;
 
     /**
-     * Ingests leetcode data for a user's profile, submissions, contest ranking and triggers embedding generation through gRPC
+     * Ingests leetcode data for a user's profile, submissions, contest ranking
      *
      * @param userId           user's UUID
      * @param leetcodeUsername user's LeetCode username

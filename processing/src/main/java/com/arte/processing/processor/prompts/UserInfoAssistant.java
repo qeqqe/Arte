@@ -1,7 +1,6 @@
 package com.arte.processing.processor.prompts;
 
 import com.arte.processing.dto.response.ProcessedUserData;
-import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;

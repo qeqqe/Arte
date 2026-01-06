@@ -14,7 +14,6 @@ import com.arte.processing.dto.leetcode.LeetCodeStats;
 import com.arte.processing.dto.resume.ResumeSummary;
 
 import java.time.Instant;
-import java.util.Map;
 import java.util.UUID;
 
 @SuppressWarnings("JpaDataSourceORMInspection")

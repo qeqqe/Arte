@@ -29,7 +29,7 @@ public class IngestionController {
 
     /**
      *  GitHub data ingestion for a user.
-     * Fetches pinned repos, READMEs, and generates embeddings.
+     * Fetches pinned repos, READMEs.
      */
     @PostMapping("/github/{userId}")
     public ResponseEntity<IngestionResponse> ingestGitHub(@PathVariable UUID userId) {
@@ -72,7 +72,7 @@ public class IngestionController {
 
     /**
      * Triggers LeetCode data ingestion for a user.
-     * Fetches profile, submissions, contest ranking, and generates embeddings.
+     * Fetches profile, submissions, contest ranking.
      */
     @PostMapping("/leetcode/{userId}")
     public ResponseEntity<IngestionResponse> ingestLeetCode(
@@ -114,7 +114,7 @@ public class IngestionController {
 
     /**
      * Processes a resume PDF for a user.
-     * Extracts text, stores summary, and generates embeddings.
+     * Extracts text, stores summary.
      */
     @PostMapping(value = "/resume/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<IngestionResponse> processResume(

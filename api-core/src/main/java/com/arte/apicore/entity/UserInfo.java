@@ -1,20 +1,29 @@
 package com.arte.apicore.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+
+import com.arte.apicore.dto.github.GitHubStats;
+import com.arte.apicore.dto.leetcode.LeetCodeStats;
+import com.arte.apicore.dto.resume.ResumeSummary;
 
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
+
 @SuppressWarnings("JpaDataSourceORMInspection")
 @Entity
 @Table(name = "user_info")
-@Getter
-@Setter
+@Data
+@NoArgsConstructor
+@Builder
+@AllArgsConstructor
 public class UserInfo {
     @Id
     @Column(name = "user_id")
@@ -23,22 +32,26 @@ public class UserInfo {
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "user_id")
-    private Users users;
+    private Users user;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "leetcode_stats", columnDefinition = "jsonb")
-    private Map<String, Object> leetcodeStats;
+    @Basic(fetch = FetchType.LAZY)
+    private LeetCodeStats leetcodeStats;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "github_stats", columnDefinition = "jsonb")
-    private Map<String, Object> githubStats;
+    @Basic(fetch = FetchType.LAZY)
+    private GitHubStats githubStats;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "resume_summary", columnDefinition = "jsonb")
-    private Map<String, Object> resumeSummary;
+    @Basic(fetch = FetchType.LAZY)
+    private ResumeSummary resumeSummary;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "processed_user_data", columnDefinition = "jsonb")
+    @Basic(fetch = FetchType.LAZY)
     private Map<String, Object> processedUserData;
 
     @Column(name = "processing_version", length = 10)
@@ -49,6 +62,4 @@ public class UserInfo {
 
     @Column(name = "last_ingested_at")
     private Instant lastIngestedAt;
-
-    protected UserInfo() {}
 }

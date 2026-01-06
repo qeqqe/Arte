@@ -44,7 +44,6 @@ public class UserKnowledgeBase {
     @Column(name = "metadata", columnDefinition = "jsonb")
     private Map<String, Object> metadata;
 
-    // embedding field is managed by the processing service via gRPC
     
     @Column(name = "created_at", insertable = false, updatable = false)
     private Instant createdAt;

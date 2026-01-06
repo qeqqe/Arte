@@ -1,6 +1,5 @@
 package com.arte.ingestion.dto.github;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.jackson.Jacksonized;

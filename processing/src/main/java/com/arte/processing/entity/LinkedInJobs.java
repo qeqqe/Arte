@@ -10,8 +10,6 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @SuppressWarnings("JpaDataSourceORMInspection")
@@ -42,9 +40,6 @@ public class LinkedInJobs {
 
     @Column(name = "processed_at")
     private Instant processedAt;
-
-    @Column(name = "embedding", columnDefinition = "vector(1536)")
-    private List<Float> embedding;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private Instant createdAt;

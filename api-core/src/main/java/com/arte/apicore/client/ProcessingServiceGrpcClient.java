@@ -62,10 +62,10 @@ public class ProcessingServiceGrpcClient {
                     .withDeadlineAfter(timeoutSeconds, TimeUnit.SECONDS)
                     .processUserInfo(request);
         } catch (StatusRuntimeException e) {
-            log.error("gRPC call failed: {}", e.getStatus(), e);
+            handleGrpcError(e, userId, "User-Info");
             return ProcessUserInfoResponse.newBuilder()
                     .setSuccess(false)
-                    .setMessage("gRPC error: " + e.getStatus().getDescription())
+                    .setMessage("Processing failed: " + e.getStatus().getDescription())
                     .build();
         }
     }
@@ -83,7 +83,7 @@ public class ProcessingServiceGrpcClient {
                     .withDeadlineAfter(timeoutSeconds, TimeUnit.SECONDS)
                     .processJobInfo(request);
         } catch (StatusRuntimeException e) {
-            log.error("gRPC call failed: {}", e.getStatus(), e);
+            handleGrpcError(e, userId, "Job-Info");
             return ProcessJobInfoResponse.newBuilder()
                     .setSuccess(false)
                     .setMessage("gRPC error: " + e.getStatus().getDescription())
@@ -104,11 +104,24 @@ public class ProcessingServiceGrpcClient {
                     .withDeadlineAfter(timeoutSeconds, TimeUnit.SECONDS)
                     .processUserAndJob(request);
         } catch (StatusRuntimeException e) {
-            log.error("gRPC call failed: {}", e.getStatus(), e);
+            handleGrpcError(e, userId, "User-Job Comparison");
             return ProcessUserAndJobResponse.newBuilder()
                     .setSuccess(false)
                     .setMessage("gRPC error: " + e.getStatus().getDescription())
                     .build();
+        }
+    }
+
+    private void handleGrpcError(StatusRuntimeException e, UUID userId, String service) {
+        switch (e.getStatus().getCode()) {
+            case DEADLINE_EXCEEDED:
+                log.warn("{} Processing timeout for user {}", service, userId);
+                break;
+            case UNAVAILABLE:
+                log.warn("{} Processing service unavailable for user {}", service, userId);
+                break;
+            default:
+                log.error("{} Unexpected gRPC error for user {}: {}", service, userId, e.getStatus(), e);
         }
     }
 

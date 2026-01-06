@@ -35,7 +35,7 @@ public class GitHubIngestionService {
     private final ObjectMapper objectMapper;
 
     /**
-     * Ingests user's github pinned repos, readme, and after that this triggers embedding gen.
+     * Ingests user's github pinned repos, readme.
      *
      * @param userId user's UUID? what else lol
      * @return IngestionResult with all the details of what was ingested

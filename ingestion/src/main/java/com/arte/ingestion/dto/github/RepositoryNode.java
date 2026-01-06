@@ -1,8 +1,6 @@
 package com.arte.ingestion.dto.github;
 
 
-import java.util.List;
-
 public record RepositoryNode(
         String name,
         String description,
