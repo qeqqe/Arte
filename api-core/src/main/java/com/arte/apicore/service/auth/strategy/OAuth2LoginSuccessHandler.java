@@ -7,6 +7,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -18,14 +21,17 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
     private final JwtTokenProvider tokenProvider;
     private final UserService userService;
+    private final OAuth2AuthorizedClientService authorizedClientService;
     private final String frontendUrl;
 
     public OAuth2LoginSuccessHandler(
             JwtTokenProvider tokenProvider,
             UserService userService,
+            OAuth2AuthorizedClientService authorizedClientService,
             @Value("${app.frontend-url:http://localhost:3000}") String frontendUrl) {
         this.tokenProvider = tokenProvider;
         this.userService = userService;
+        this.authorizedClientService = authorizedClientService;
         this.frontendUrl = frontendUrl;
     }
 
@@ -37,14 +43,22 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         String githubUsername = oauth2User.getAttribute("login");
         String email = oauth2User.getAttribute("email");
         
-        // Get the access token from the OAuth2AuthenticationToken
-        String githubAccessToken = "";
-        if (authentication instanceof org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken) {
-            org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken oauth2Token = 
-                (org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken) authentication;
-            githubAccessToken = oauth2Token.getPrincipal().getAttribute("access_token") != null 
-                ? oauth2Token.getPrincipal().getAttribute("access_token").toString()
-                : "default-token";
+        // If email is null, use a default email format
+        if (email == null || email.isEmpty()) {
+            email = githubUsername + "@github.user";
+        }
+        
+        // Get the actual GitHub access token from authorized client
+        String githubAccessToken = "default-token";
+        if (authentication instanceof OAuth2AuthenticationToken) {
+            OAuth2AuthenticationToken oauth2Token = (OAuth2AuthenticationToken) authentication;
+            OAuth2AuthorizedClient authorizedClient = authorizedClientService.loadAuthorizedClient(
+                oauth2Token.getAuthorizedClientRegistrationId(),
+                oauth2Token.getName()
+            );
+            if (authorizedClient != null && authorizedClient.getAccessToken() != null) {
+                githubAccessToken = authorizedClient.getAccessToken().getTokenValue();
+            }
         }
         
         // Create or update user in database
