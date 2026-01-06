@@ -29,4 +29,18 @@ public class UserService {
         return userRepository.findByGithubUsername(githubUsername)
                 .orElseThrow(() -> new UserNotFoundException("User not found: " + githubUsername));
     }
+
+    public Users createOrUpdateUser(String email, String githubUsername, String githubToken) {
+        Optional<Users> existingUser = userRepository.findByGithubUsername(githubUsername);
+        
+        if (existingUser.isPresent()) {
+            Users user = existingUser.get();
+            user.setEmail(email);
+            user.setGithubToken(githubToken);
+            return userRepository.save(user);
+        } else {
+            Users newUser = new Users(email, githubUsername, githubToken);
+            return userRepository.save(newUser);
+        }
+    }
 }

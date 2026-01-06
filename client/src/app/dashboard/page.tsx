@@ -35,7 +35,7 @@ export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true); 
+    setMounted(true);
   }, []);
 
   useEffect(() => {

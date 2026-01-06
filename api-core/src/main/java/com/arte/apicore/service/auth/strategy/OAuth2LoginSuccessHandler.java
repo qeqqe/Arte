@@ -35,7 +35,20 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
                                         Authentication authentication) throws IOException {
         OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
         String githubUsername = oauth2User.getAttribute("login");
-        Users user = userService.getCurrentUser(githubUsername);
+        String email = oauth2User.getAttribute("email");
+        
+        // Get the access token from the OAuth2AuthenticationToken
+        String githubAccessToken = "";
+        if (authentication instanceof org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken) {
+            org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken oauth2Token = 
+                (org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken) authentication;
+            githubAccessToken = oauth2Token.getPrincipal().getAttribute("access_token") != null 
+                ? oauth2Token.getPrincipal().getAttribute("access_token").toString()
+                : "default-token";
+        }
+        
+        // Create or update user in database
+        Users user = userService.createOrUpdateUser(email, githubUsername, githubAccessToken);
 
         String userId = String.valueOf(user.getId());
         String accessToken = tokenProvider.generateAccessToken(userId, user.getGithubUsername(), user.getEmail());
