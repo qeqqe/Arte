@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { 
   Search, 
   Loader2, 
@@ -244,11 +246,12 @@ function FetchedStep({ jobData, onProcess, isLoading }: FetchedStepProps) {
       </div>
 
       <div className="rounded-lg border bg-muted/30 p-4">
-        <ScrollArea className="h-48">
-          <pre className="text-sm whitespace-pre-wrap font-mono">
-            {jobData.rawContent.slice(0, 2000)}
-            {jobData.rawContent.length > 2000 && "..."}
-          </pre>
+        <ScrollArea className="h-64">
+          <article className="prose prose-sm dark:prose-invert max-w-none">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {jobData.rawContent}
+            </ReactMarkdown>
+          </article>
         </ScrollArea>
       </div>
 

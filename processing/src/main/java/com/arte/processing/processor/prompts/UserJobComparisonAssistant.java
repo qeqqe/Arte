@@ -19,6 +19,8 @@ public interface UserJobComparisonAssistant {
             - Strengths: Candidate's advantages for this position
             - Recommendations: Actionable steps to improve candidacy
             - Fit assessment: Detailed narrative explaining the match quality
+            - Job title: Title of the Job exact or make a concise version (3-4 word max)
+            - Company name: Name of the company hiring
             
             Be objective and specific. Identify both technical and soft skill gaps.
             Consider career level, domain expertise, and tool proficiency.

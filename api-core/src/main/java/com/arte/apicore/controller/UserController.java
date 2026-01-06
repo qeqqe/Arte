@@ -87,37 +87,18 @@ public class UserController {
 
         List<JobComparisonSummaryDTO> summaries = comparisons.stream()
                 .map(comp -> {
-                                        Map<String, Object> data = comp.getComparisonData();
-                                        String jobTitle = extractString(data, "jobTitle");
-                                        String company = extractString(data, "company");
+                    Map<String, Object> data = comp.getComparisonData();
+                    String jobTitle = extractString(data, "jobTitle");
+                    String company = extractString(data, "company");
 
-                                        // Fallback: try to read from LinkedInJobs.processedJobData when missing
-                                        if ((jobTitle == null || jobTitle.isBlank() || "null".equals(jobTitle)) || (company == null || company.isBlank() || "null".equals(company))) {
-                                                linkedInJobsRepository.findByJobId(comp.getJobId()).ifPresent(job -> {
-                                                        Map<String, Object> pj = job.getProcessedJobData();
-                                                        if (pj != null) {
-                                                                if (jobTitle == null || jobTitle.isBlank() || "null".equals(jobTitle)) {
-                                                                        String t = extractString(pj, "jobTitle");
-                                                                        if (t == null) t = extractString(pj, "title");
-                                                                        if (t != null) jobTitle = t;
-                                                                }
-                                                                if (company == null || company.isBlank() || "null".equals(company)) {
-                                                                        String c = extractString(pj, "company");
-                                                                        if (c == null) c = extractString(pj, "companyName");
-                                                                        if (c != null) company = c;
-                                                                }
-                                                        }
-                                                });
-                                        }
-
-                                        return new JobComparisonSummaryDTO(
-                                                        comp.getId().toString(),
-                                                        comp.getJobId(),
-                                                        jobTitle,
-                                                        company,
-                                                        comp.getMatchScore(),
-                                                        comp.getCreatedAt()
-                                        );
+                    return new JobComparisonSummaryDTO(
+                            comp.getId().toString(),
+                            comp.getJobId(),
+                            jobTitle,
+                            company,
+                            comp.getMatchScore(),
+                            comp.getCreatedAt()
+                    );
                 })
                 .toList();
 

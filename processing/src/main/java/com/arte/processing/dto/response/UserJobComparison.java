@@ -12,5 +12,7 @@ public record UserJobComparison(
         List<SkillGap> skillGaps,
         List<String> strengths,
         List<String> recommendations,
-        String fitAssessment
+        String fitAssessment,
+        String jobTitle,
+        String company
 ) {}

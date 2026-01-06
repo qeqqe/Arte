@@ -81,7 +81,9 @@ public final class ProcessingProtoMapper {
                 .setSkillsMatchScore(dto.skillsMatchScore())
                 .setExperienceMatchScore(dto.experienceMatchScore())
                 .setEducationMatchScore(dto.educationMatchScore())
-                .setFitAssessment(safe(dto.fitAssessment()));
+                .setFitAssessment(safe(dto.fitAssessment()))
+                .setFitAssessment(safe(dto.jobTitle()))
+                .setFitAssessment(safe(dto.company()));
 
         if (dto.strengths() != null) builder.addAllStrengths(dto.strengths());
         if (dto.recommendations() != null) builder.addAllRecommendations(dto.recommendations());

@@ -95,6 +95,8 @@ message UserJobComparison {
   repeated string strengths = 8;
   repeated string recommendations = 9;
   string fit_assessment = 10;
+  string job_title = 11;
+  string company = 12;
 }
 
 message SkillGap {

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useComparisons, useJob } from "@/hooks/use-api";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { useComparisons, useJob, useComparison } from "@/hooks/use-api";
 import { 
   History, 
   ChevronRight, 
@@ -9,15 +11,25 @@ import {
   Building2, 
   Calendar,
   Target,
-  ExternalLink
+  ExternalLink,
+  TrendingUp,
+  TrendingDown,
+  CheckCircle2,
+  AlertTriangle,
+  Lightbulb,
+  GraduationCap,
+  Wrench,
+  Loader2
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import type { JobComparisonSummary } from "@/types";
+import type { JobComparisonSummary, UserJobComparison, SkillGap } from "@/types";
 
 export function ComparisonHistorySection() {
   const { data: comparisons, isLoading, error } = useComparisons();
@@ -179,7 +191,11 @@ interface ComparisonDetailDialogProps {
 }
 
 function ComparisonDetailDialog({ comparison, open, onClose }: ComparisonDetailDialogProps) {
+  const { data: fullComparison, isLoading: comparisonLoading } = useComparison(comparison.jobId);
   const { data: jobData } = useJob(comparison.jobId);
+
+  // Cast the full comparison data
+  const comparisonData = fullComparison as UserJobComparison | undefined;
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-green-600";
@@ -187,9 +203,22 @@ function ComparisonDetailDialog({ comparison, open, onClose }: ComparisonDetailD
     return "text-red-600";
   };
 
+  const getScoreBgColor = (score: number) => {
+    if (score >= 80) return "bg-green-500";
+    if (score >= 60) return "bg-yellow-500";
+    return "bg-red-500";
+  };
+
+  const getImportanceBadgeColor = (importance: string) => {
+    const imp = importance.toLowerCase();
+    if (imp === "high" || imp === "critical") return "destructive";
+    if (imp === "medium") return "secondary";
+    return "outline";
+  };
+
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh]">
+      <DialogContent className="max-w-3xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Briefcase className="h-5 w-5" />
@@ -201,46 +230,166 @@ function ComparisonDetailDialog({ comparison, open, onClose }: ComparisonDetailD
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[60vh]">
-          <div className="space-y-6 pr-4">
-            <div className="text-center py-4">
-              <div className="text-sm text-muted-foreground mb-1">Overall Match</div>
-              <div className={`text-5xl font-bold ${getScoreColor(comparison.matchScore)}`}>
-                {comparison.matchScore}%
-              </div>
+        <ScrollArea className="max-h-[70vh]">
+          {comparisonLoading ? (
+            <div className="py-12 flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-
-            <Separator />
-
-            {jobData && jobData.rawContent && (
-              <div>
-                <h4 className="font-medium mb-3">Job Details</h4>
-                <div className="mt-3 p-3 rounded-lg bg-muted/30">
-                  <div className="text-xs text-muted-foreground mb-2">Description Preview</div>
-                  <p className="text-sm line-clamp-6">{jobData.rawContent}</p>
+          ) : comparisonData ? (
+            <div className="space-y-6 pr-4">
+              {/* Overall Score */}
+              <div className="text-center py-4">
+                <div className="text-sm text-muted-foreground mb-2">Overall Match</div>
+                <div className={`text-5xl font-bold ${getScoreColor(comparisonData.overallMatchScore)}`}>
+                  {comparisonData.overallMatchScore}%
                 </div>
               </div>
-            )}
 
-            <div className="pt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full"
-                asChild
-              >
-                <a 
-                  href={`https://www.linkedin.com/jobs/view/${comparison.jobId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2"
+              {/* Score Breakdown */}
+              <div className="grid grid-cols-3 gap-3">
+                <ScoreCard 
+                  label="Skills" 
+                  score={comparisonData.skillsMatchScore} 
+                  icon={<Wrench className="h-4 w-4" />}
+                />
+                <ScoreCard 
+                  label="Experience" 
+                  score={comparisonData.experienceMatchScore} 
+                  icon={<TrendingUp className="h-4 w-4" />}
+                />
+                <ScoreCard 
+                  label="Education" 
+                  score={comparisonData.educationMatchScore} 
+                  icon={<GraduationCap className="h-4 w-4" />}
+                />
+              </div>
+
+              <Separator />
+
+              {/* Fit Assessment */}
+              {comparisonData.fitAssessment && (
+                <div className="space-y-2">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <Target className="h-4 w-4 text-primary" />
+                    Fit Assessment
+                  </h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {comparisonData.fitAssessment}
+                  </p>
+                </div>
+              )}
+
+              {/* Strengths */}
+              {comparisonData.strengths && comparisonData.strengths.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    Your Strengths ({comparisonData.strengths.length})
+                  </h4>
+                  <div className="grid gap-2">
+                    {comparisonData.strengths.map((strength, index) => (
+                      <div 
+                        key={index}
+                        className="flex items-start gap-2 p-2 rounded-md bg-green-500/5 border border-green-500/20"
+                      >
+                        <TrendingUp className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
+                        <span className="text-sm">{strength}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Skill Gaps */}
+              {comparisonData.skillGaps && comparisonData.skillGaps.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                    Skill Gaps ({comparisonData.skillGaps.length})
+                  </h4>
+                  <div className="grid gap-3">
+                    {comparisonData.skillGaps.map((gap: SkillGap, index: number) => (
+                      <div 
+                        key={index}
+                        className="p-3 rounded-md bg-yellow-500/5 border border-yellow-500/20"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-sm">{gap.skillName}</span>
+                          <Badge variant={getImportanceBadgeColor(gap.importance)}>
+                            {gap.importance}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{gap.suggestion}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Recommendations */}
+              {comparisonData.recommendations && comparisonData.recommendations.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <Lightbulb className="h-4 w-4 text-blue-600" />
+                    Recommendations ({comparisonData.recommendations.length})
+                  </h4>
+                  <div className="grid gap-2">
+                    {comparisonData.recommendations.map((rec, index) => (
+                      <div 
+                        key={index}
+                        className="flex items-start gap-2 p-2 rounded-md bg-blue-500/5 border border-blue-500/20"
+                      >
+                        <span className="text-blue-600 font-semibold text-sm shrink-0">{index + 1}.</span>
+                        <span className="text-sm">{rec}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <Separator />
+
+              {/* Job Description */}
+              {jobData && jobData.rawContent && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold">Job Description</h4>
+                  <div className="rounded-lg border bg-muted/30 p-4">
+                    <ScrollArea className="h-48">
+                      <article className="prose prose-sm dark:prose-invert max-w-none">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {jobData.rawContent}
+                        </ReactMarkdown>
+                      </article>
+                    </ScrollArea>
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  asChild
                 >
-                  <ExternalLink className="h-4 w-4" />
-                  View on LinkedIn
-                </a>
-              </Button>
+                  <a 
+                    href={`https://www.linkedin.com/jobs/view/${comparison.jobId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    View on LinkedIn
+                  </a>
+                </Button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="py-12 text-center space-y-3">
+              <AlertTriangle className="h-8 w-8 text-muted-foreground mx-auto" />
+              <p className="text-sm text-muted-foreground">Could not load comparison details</p>
+            </div>
+          )}
         </ScrollArea>
       </DialogContent>
     </Dialog>
@@ -250,9 +399,10 @@ function ComparisonDetailDialog({ comparison, open, onClose }: ComparisonDetailD
 interface ScoreCardProps {
   label: string;
   score: number;
+  icon?: React.ReactNode;
 }
 
-function ScoreCard({ label, score }: ScoreCardProps) {
+function ScoreCard({ label, score, icon }: ScoreCardProps) {
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-green-600 border-green-500/30 bg-green-500/5";
     if (score >= 60) return "text-yellow-600 border-yellow-500/30 bg-yellow-500/5";
@@ -261,6 +411,7 @@ function ScoreCard({ label, score }: ScoreCardProps) {
 
   return (
     <div className={`p-4 rounded-lg border text-center ${getScoreColor(score)}`}>
+      {icon && <div className="flex justify-center mb-1">{icon}</div>}
       <div className="text-2xl font-bold">{score}%</div>
       <div className="text-xs opacity-80">{label}</div>
     </div>

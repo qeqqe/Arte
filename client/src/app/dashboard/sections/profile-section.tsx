@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { 
   Github, 
   Code2, 
@@ -13,9 +13,13 @@ import {
   ChevronDown,
   ChevronUp,
   RefreshCw,
-  CheckCircle2
+  CheckCircle2,
+  Pencil,
+  Upload,
+  RotateCw,
+  Loader2
 } from "lucide-react";
-import { useProfile, useProcessUser } from "@/hooks/use-api";
+import { useProfile, useProcessUser, useIngestResume, useIngestLeetCode, useIngestGitHub } from "@/hooks/use-api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +27,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 export function ProfileSection() {
@@ -156,11 +171,30 @@ interface GitHubProfileCardProps {
 }
 
 function GitHubProfileCard({ stats, isExpanded, onToggle }: GitHubProfileCardProps) {
+  const { mutate: ingestGitHub, isPending: isRefreshing } = useIngestGitHub();
+
+  const handleRefresh = () => {
+    ingestGitHub();
+  };
+
   if (!stats) {
     return (
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
-          No GitHub data available
+          <p className="mb-4">No GitHub data available</p>
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
+            {isRefreshing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Syncing...
+              </>
+            ) : (
+              <>
+                <Github className="mr-2 h-4 w-4" />
+                Sync GitHub
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
     );
@@ -174,13 +208,28 @@ function GitHubProfileCard({ stats, isExpanded, onToggle }: GitHubProfileCardPro
             <Github className="h-5 w-5" />
             GitHub Overview
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onToggle}>
-            {isExpanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              title="Resync GitHub data"
+            >
+              {isRefreshing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RotateCw className="h-4 w-4" />
+              )}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onToggle}>
+              {isExpanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -279,11 +328,73 @@ interface LeetCodeProfileCardProps {
 }
 
 function LeetCodeProfileCard({ stats, isExpanded, onToggle }: LeetCodeProfileCardProps) {
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [newUsername, setNewUsername] = useState("");
+  const { mutate: ingestLeetCode, isPending: isUpdating, error: updateError } = useIngestLeetCode();
+
+  const handleUpdateLeetCode = () => {
+    const username = newUsername.trim() || (stats?.username ?? "");
+    if (!username) return;
+    
+    ingestLeetCode(username, {
+      onSuccess: () => {
+        setEditDialogOpen(false);
+        setNewUsername("");
+      },
+    });
+  };
+
   if (!stats) {
     return (
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
-          No LeetCode data available
+          <p className="mb-4">No LeetCode data available</p>
+          <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Code2 className="mr-2 h-4 w-4" />
+                Add LeetCode
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add LeetCode Profile</DialogTitle>
+                <DialogDescription>
+                  Enter your LeetCode username to import your stats.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="leetcode-username">LeetCode Username</Label>
+                  <Input
+                    id="leetcode-username"
+                    placeholder="your-leetcode-username"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                    disabled={isUpdating}
+                  />
+                </div>
+                {updateError && (
+                  <p className="text-sm text-red-500">{updateError.message}</p>
+                )}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setEditDialogOpen(false)} disabled={isUpdating}>
+                  Cancel
+                </Button>
+                <Button onClick={handleUpdateLeetCode} disabled={isUpdating || !newUsername.trim()}>
+                  {isUpdating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Importing...
+                    </>
+                  ) : (
+                    "Import Stats"
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </CardContent>
       </Card>
     );
@@ -303,13 +414,68 @@ function LeetCodeProfileCard({ stats, isExpanded, onToggle }: LeetCodeProfileCar
             LeetCode Stats
             <Badge variant="secondary" className="ml-2">@{stats.username}</Badge>
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onToggle}>
-            {isExpanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </Button>
+          <div className="flex items-center gap-1">
+            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="sm" title="Change username or rescan">
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Update LeetCode Profile</DialogTitle>
+                  <DialogDescription>
+                    Change your username or rescan to get the latest stats.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="leetcode-username">LeetCode Username</Label>
+                    <Input
+                      id="leetcode-username"
+                      placeholder={stats.username}
+                      value={newUsername}
+                      onChange={(e) => setNewUsername(e.target.value)}
+                      disabled={isUpdating}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Leave empty to rescan current username (@{stats.username})
+                    </p>
+                  </div>
+                  {updateError && (
+                    <p className="text-sm text-red-500">{updateError.message}</p>
+                  )}
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setEditDialogOpen(false)} disabled={isUpdating}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleUpdateLeetCode} disabled={isUpdating}>
+                    {isUpdating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Updating...
+                      </>
+                    ) : newUsername.trim() ? (
+                      "Change Username"
+                    ) : (
+                      <>
+                        <RotateCw className="mr-2 h-4 w-4" />
+                        Rescan Stats
+                      </>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            <Button variant="ghost" size="sm" onClick={onToggle}>
+              {isExpanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -413,11 +579,55 @@ interface ResumeProfileCardProps {
 }
 
 function ResumeProfileCard({ summary, isExpanded, onToggle }: ResumeProfileCardProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { mutate: ingestResume, isPending: isUploading, error: uploadError } = useIngestResume();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      ingestResume(file, {
+        onSuccess: () => {
+          if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+          }
+        },
+      });
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
   if (!summary) {
     return (
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
-          No resume data available
+          <p className="mb-4">No resume data available</p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.doc,.docx"
+            className="hidden"
+            onChange={handleFileChange}
+            disabled={isUploading}
+          />
+          <Button variant="outline" size="sm" onClick={handleUploadClick} disabled={isUploading}>
+            {isUploading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Upload className="mr-2 h-4 w-4" />
+                Upload Resume
+              </>
+            )}
+          </Button>
+          {uploadError && (
+            <p className="text-sm text-red-500 mt-2">{uploadError.message}</p>
+          )}
         </CardContent>
       </Card>
     );
@@ -431,15 +641,41 @@ function ResumeProfileCard({ summary, isExpanded, onToggle }: ResumeProfileCardP
             <FileText className="h-5 w-5" />
             Resume Summary
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onToggle}>
-            {isExpanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </Button>
+          <div className="flex items-center gap-1">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.doc,.docx"
+              className="hidden"
+              onChange={handleFileChange}
+              disabled={isUploading}
+            />
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleUploadClick} 
+              disabled={isUploading}
+              title="Upload new resume"
+            >
+              {isUploading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4" />
+              )}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onToggle}>
+              {isExpanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </div>
         <CardDescription>{summary.fileName} • {summary.wordCount} words</CardDescription>
+        {uploadError && (
+          <p className="text-sm text-red-500">{uploadError.message}</p>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {summary.skills && summary.skills.length > 0 && (

@@ -144,6 +144,8 @@ export interface UserJobComparison {
   strengths: string[];
   recommendations: string[];
   fitAssessment: string;
+  jobTitle: string;
+  company: string;
 }
 
 export interface ProcessUserResponse {

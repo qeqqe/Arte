@@ -8,7 +8,9 @@ import {
   Sun,
   LogOut,
   User as UserIcon,
-  ChevronDown
+  ChevronDown,
+  PanelLeftClose,
+  PanelLeft
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useUser, useOnboardingStatus } from "@/hooks/use-api";
@@ -24,8 +26,7 @@ import {
 import { ProfileSection } from "./sections/profile-section";
 import { JobAnalysisSection } from "./sections/job-analysis-section";
 import { ComparisonHistorySection } from "./sections/comparison-history-section";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8082";
+import { cn } from "@/lib/utils";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -33,6 +34,7 @@ export default function DashboardPage() {
   const { data: user, isLoading: userLoading, error: userError } = useUser();
   const { data: onboardingStatus, isLoading: statusLoading } = useOnboardingStatus();
   const [mounted, setMounted] = useState(false);
+  const [profileCollapsed, setProfileCollapsed] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -85,6 +87,24 @@ export default function DashboardPage() {
         <div className="container mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-bold">Arte</h1>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setProfileCollapsed(!profileCollapsed)}
+              className="gap-2 hidden md:flex"
+            >
+              {profileCollapsed ? (
+                <>
+                  <PanelLeft className="h-4 w-4" />
+                  <span>Profile</span>
+                </>
+              ) : (
+                <>
+                  <PanelLeftClose className="h-4 w-4" />
+                  <span>Profile</span>
+                </>
+              )}
+            </Button>
           </div>
 
           <div className="flex items-center gap-2">
@@ -128,11 +148,27 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 space-y-8">
-        <ProfileSection />
-        <JobAnalysisSection />
-        <ComparisonHistorySection />
-      </main>
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Profile Sidebar */}
+          <aside className={cn(
+            "shrink-0 transition-all duration-300",
+            profileCollapsed 
+              ? "lg:w-0 lg:opacity-0 lg:overflow-hidden" 
+              : "w-full lg:w-80 xl:w-96"
+          )}>
+            <div className="lg:sticky lg:top-20">
+              <ProfileSection />
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <main className="flex-1 min-w-0 space-y-6">
+            <JobAnalysisSection />
+            <ComparisonHistorySection />
+          </main>
+        </div>
+      </div>
     </div>
   );
 }
