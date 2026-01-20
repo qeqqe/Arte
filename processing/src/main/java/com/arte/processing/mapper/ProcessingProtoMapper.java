@@ -1,7 +1,7 @@
 package com.arte.processing.mapper;
 
 import com.arte.processing.dto.response.ProcessedJobData;
-import com.arte.processing.dto.response.ProcessedUserData;
+import com.arte.processing.dto.response.ProcessedLLMResponse;
 import com.arte.processing.dto.response.SkillGap;
 import com.arte.processing.dto.response.UserJobComparison;
 import com.arte.processing.dto.response.WorkExperience;
@@ -10,7 +10,7 @@ public final class ProcessingProtoMapper {
 
     private ProcessingProtoMapper() {}
 
-    public static com.arte.processing.grpc.ProcessedUserData toProto(ProcessedUserData dto) {
+    public static com.arte.processing.grpc.ProcessedUserData toProto(ProcessedLLMResponse dto) {
         if (dto == null) return com.arte.processing.grpc.ProcessedUserData.getDefaultInstance();
 
         var builder = com.arte.processing.grpc.ProcessedUserData.newBuilder()

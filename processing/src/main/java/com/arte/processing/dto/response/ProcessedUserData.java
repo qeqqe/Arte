@@ -16,4 +16,3 @@ public record ProcessedUserData(
         String careerLevel,
         List<String> domains
 ) {}
-

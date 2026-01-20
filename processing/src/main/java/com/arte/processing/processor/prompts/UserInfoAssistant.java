@@ -1,6 +1,6 @@
 package com.arte.processing.processor.prompts;
 
-import com.arte.processing.dto.response.ProcessedUserData;
+import com.arte.processing.dto.response.ProcessedLLMResponse;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
@@ -21,7 +21,7 @@ public interface UserInfoAssistant {
             - List frameworks and tools mentioned anywhere
             - Determine career level (Junior: 0-2 years, Mid-level: 2-5 years, Senior: 5-8 years, Lead: 8+ years)
             - Identify technical domains/specializations (e.g., Web Development, Machine Learning, DevOps)
-            
+            - Seperate the resume specific details in the fields: resumeSkills, resumeExperiences, resumeEducation, resumeSummary.
             Be thorough and extract every relevant detail. Combine information from GitHub projects, LeetCode stats, and resume.
             Deduplicate skills across sources. Infer additional skills from project descriptions.
             """)
@@ -40,7 +40,7 @@ public interface UserInfoAssistant {
             Knowledge Base Entries:
             {{knowledgeBase}}
             """)
-    ProcessedUserData analyzeUser(
+    ProcessedLLMResponse analyzeUser(
             @V("userId") String userId,
             @V("githubData") String githubData,
             @V("leetcodeData") String leetcodeData,

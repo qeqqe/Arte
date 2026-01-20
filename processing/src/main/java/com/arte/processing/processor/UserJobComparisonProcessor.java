@@ -1,6 +1,7 @@
 package com.arte.processing.processor;
 
 import com.arte.processing.dto.response.ProcessedJobData;
+import com.arte.processing.dto.response.ProcessedLLMResponse;
 import com.arte.processing.dto.response.ProcessedUserData;
 import com.arte.processing.dto.response.UserJobComparison;
 import com.arte.processing.processor.prompts.UserJobComparisonAssistant;

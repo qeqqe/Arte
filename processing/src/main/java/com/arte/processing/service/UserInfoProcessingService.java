@@ -1,6 +1,8 @@
 package com.arte.processing.service;
 
+import com.arte.processing.dto.response.ProcessedLLMResponse;
 import com.arte.processing.dto.response.ProcessedUserData;
+import com.arte.processing.dto.resume.ResumeSummary;
 import com.arte.processing.entity.UserInfo;
 import com.arte.processing.entity.UserKnowledgeBase;
 import com.arte.processing.entity.Users;
@@ -35,7 +37,7 @@ public class UserInfoProcessingService {
     private final ObjectMapper objectMapper;
 
     @Transactional
-    public ProcessedUserData processUserInfo(Users user) {
+    public ProcessedLLMResponse processUserInfo(Users user) {
         UUID userId = user.getId();
         log.info("Starting user info processing for user: {}", userId);
 
@@ -48,7 +50,7 @@ public class UserInfoProcessingService {
 
         var model = llmProvider.getChatModel(user.getGithubToken());
 
-        ProcessedUserData result = userInfoProcessor.process(user, userInfo, knowledgeBase, model);
+        ProcessedLLMResponse result = userInfoProcessor.process(user, userInfo, knowledgeBase, model);
 
         persistProcessedUserData(userInfo, result, processingVersion);
 
@@ -57,15 +59,25 @@ public class UserInfoProcessingService {
     }
 
     @Transactional
-    public ProcessedUserData processUserInfoId(UUID userId) {
+    public ProcessedLLMResponse processUserInfoId(UUID userId) {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
         return processUserInfo(user);
     }
 
 
-        private void persistProcessedUserData(UserInfo userInfo, ProcessedUserData data, String version) {
-        userInfo.setProcessedUserData(data);
+        private void persistProcessedUserData(UserInfo userInfo, ProcessedLLMResponse data, String version) {
+        ResumeSummary resumeSummary = userInfo.getResumeSummary();
+
+        resumeSummary.setSkills(data.resumeSkills());
+        resumeSummary.setExperiences(data.resumeExperiences());
+        resumeSummary.setEducation(data.education());
+        resumeSummary.setSummary(data.resumeSummary());
+
+        ProcessedUserData processedUserData = data.toUserData();
+
+        userInfo.setResumeSummary(resumeSummary);
+        userInfo.setProcessedUserData(processedUserData);
         userInfo.setProcessingVersion(version != null ? version : DEFAULT_VERSION);
         userInfo.setProcessedAt(Instant.now());
         userInfoRepository.save(userInfo);

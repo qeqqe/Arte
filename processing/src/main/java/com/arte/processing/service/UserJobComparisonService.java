@@ -75,7 +75,7 @@ public class UserJobComparisonService {
 
         if (userData == null) {
             log.debug("Processing user data for user: {}", user.getId());
-            userData = userInfoProcessingService.processUserInfo(user);
+            userData = (userInfoProcessingService.processUserInfo(user)).toUserData();
         }
 
         return userData;

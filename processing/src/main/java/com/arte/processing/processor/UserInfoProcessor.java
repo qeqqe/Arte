@@ -4,7 +4,7 @@ import com.arte.processing.entity.UserInfo;
 import com.arte.processing.entity.UserKnowledgeBase;
 import com.arte.processing.entity.Users;
 import com.arte.processing.processor.prompts.UserInfoAssistant;
-import com.arte.processing.dto.response.ProcessedUserData;
+import com.arte.processing.dto.response.ProcessedLLMResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.model.openaiofficial.OpenAiOfficialChatModel;
@@ -23,7 +23,7 @@ public class UserInfoProcessor {
 
     private final ObjectMapper objectMapper;
 
-    public ProcessedUserData process(Users user, UserInfo userInfo, List<UserKnowledgeBase> knowledgeBase, OpenAiOfficialChatModel model) {
+    public ProcessedLLMResponse process(Users user, UserInfo userInfo, List<UserKnowledgeBase> knowledgeBase, OpenAiOfficialChatModel model) {
         try {
             UserInfoAssistant assistant = AiServices.create(UserInfoAssistant.class, model);
 
@@ -34,7 +34,7 @@ public class UserInfoProcessor {
 
             log.info("Processing user info for user: {}", user.getId());
             
-            ProcessedUserData result = assistant.analyzeUser(
+            ProcessedLLMResponse result = assistant.analyzeUser(
                     String.valueOf(user.getId()),
                     githubData,
                     leetcodeData,

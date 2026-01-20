@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-// grpc client for calling ingestion service
 @Component
 @Slf4j
 public class IngestionServiceGrpcClient {

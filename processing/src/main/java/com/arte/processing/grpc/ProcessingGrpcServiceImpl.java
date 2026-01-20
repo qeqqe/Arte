@@ -1,7 +1,7 @@
 package com.arte.processing.grpc;
 
 import com.arte.processing.dto.response.ProcessedJobData;
-import com.arte.processing.dto.response.ProcessedUserData;
+import com.arte.processing.dto.response.ProcessedLLMResponse;
 import com.arte.processing.dto.response.UserJobComparison;
 import com.arte.processing.mapper.ProcessingProtoMapper;
 import com.arte.processing.service.JobInfoProcessingService;
@@ -30,7 +30,7 @@ public class ProcessingGrpcServiceImpl extends ProcessingServiceGrpc.ProcessingS
         try {
             UUID userId = UUID.fromString(request.getUserId());
 
-            ProcessedUserData result = userInfoProcessingService.processUserInfoId(userId);
+            ProcessedLLMResponse result = userInfoProcessingService.processUserInfoId(userId);
 
             var response = ProcessUserInfoResponse.newBuilder()
                     .setSuccess(true)

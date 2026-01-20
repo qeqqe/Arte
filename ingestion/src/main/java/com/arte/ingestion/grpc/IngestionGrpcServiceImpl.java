@@ -29,7 +29,7 @@ public class IngestionGrpcServiceImpl extends IngestionServiceGrpc.IngestionServ
     public IngestionGrpcServiceImpl(
             GitHubIngestionService gitHubIngestionService,
             LeetCodeIngestionService leetCodeIngestionService,
-            ResumeProcessingService resumeProcessingService, 
+            ResumeProcessingService resumeProcessingService,
             LinkedInJobIngestionService linkedInJobIngestionService,
             UserInfoRepository userInfoRepository,
             ObjectMapper objectMapper) {
@@ -44,11 +44,11 @@ public class IngestionGrpcServiceImpl extends IngestionServiceGrpc.IngestionServ
     @Override
     public void ingestGitHub(IngestGitHubRequest request, StreamObserver<IngestGitHubResponse> responseObserver) {
         log.info("gRPC: Received GitHub ingestion request for user: {}", request.getUserId());
-        
+
         try {
             UUID userId = UUID.fromString(request.getUserId());
             var result = gitHubIngestionService.ingestGitHubData(userId);
-            
+
             var response = IngestGitHubResponse.newBuilder()
                     .setSuccess(result.success())
                     .setMessage(result.message())
@@ -72,19 +72,19 @@ public class IngestionGrpcServiceImpl extends IngestionServiceGrpc.IngestionServ
 
     @Override
     public void ingestLeetCode(IngestLeetCodeRequest request, StreamObserver<IngestLeetCodeResponse> responseObserver) {
-        log.info("gRPC: Received LeetCode ingestion for user: {}, leetcode: {}", 
+        log.info("gRPC: Received LeetCode ingestion for user: {}, leetcode: {}",
                 request.getUserId(), request.getLeetcodeUsername());
-        
+
         try {
             UUID userId = UUID.fromString(request.getUserId());
             var result = leetCodeIngestionService.ingestLeetCodeData(userId, request.getLeetcodeUsername());
-            
+
             var response = IngestLeetCodeResponse.newBuilder()
                     .setSuccess(result.success())
                     .setMessage(result.message())
                     .setProblemsSolved(result.problemsSolved())
                     .build();
-            
+
             responseObserver.onNext(response);
             responseObserver.onCompleted();
             log.info("gRPC: LeetCode ingestion completed for user: {}", userId);
@@ -101,27 +101,27 @@ public class IngestionGrpcServiceImpl extends IngestionServiceGrpc.IngestionServ
 
     @Override
     public void ingestResume(IngestResumeRequest request, StreamObserver<IngestResumeResponse> responseObserver) {
-        log.info("gRPC: Received resume ingestion for user: {}, filename: {}", 
+        log.info("gRPC: Received resume ingestion for user: {}, filename: {}",
                 request.getUserId(), request.getFilename());
-        
+
         try {
             UUID userId = UUID.fromString(request.getUserId());
-            
+
             var file = new ByteArrayMultipartFile(
                     request.getContent().toByteArray(),
-                    "file", 
-                    request.getFilename(), 
+                    "file",
+                    request.getFilename(),
                     "application/pdf"
             );
-            
+
             var result = resumeProcessingService.processResume(userId, file);
-            
+
             var response = IngestResumeResponse.newBuilder()
                     .setSuccess(result.success())
                     .setMessage(result.message())
                     .setWordCount(result.wordCount())
                     .build();
-            
+
             responseObserver.onNext(response);
             responseObserver.onCompleted();
             log.info("gRPC: Resume ingestion completed for user: {}", userId);
@@ -139,15 +139,15 @@ public class IngestionGrpcServiceImpl extends IngestionServiceGrpc.IngestionServ
     @Override
     public void ingestAll(IngestAllRequest request, StreamObserver<IngestAllResponse> responseObserver) {
         log.info("gRPC: Received full ingestion for user: {}", request.getUserId());
-        
+
         IngestGitHubResponse githubResponse = null;
         IngestLeetCodeResponse leetcodeResponse = null;
         IngestResumeResponse resumeResponse = null;
         boolean overallSuccess = true;
-        
+
         try {
             UUID userId = UUID.fromString(request.getUserId());
-            
+
             // GitHub ingestion
             try {
                 var githubResult = gitHubIngestionService.ingestGitHubData(userId);
@@ -165,7 +165,7 @@ public class IngestionGrpcServiceImpl extends IngestionServiceGrpc.IngestionServ
                         .build();
                 overallSuccess = false;
             }
-            
+
             // LeetCode ingestion (only if username provided)
             if (!request.getLeetcodeUsername().isEmpty()) {
                 try {
@@ -184,7 +184,7 @@ public class IngestionGrpcServiceImpl extends IngestionServiceGrpc.IngestionServ
                             .build();
                 }
             }
-            
+
             // Resume ingestion (only if content provided)
             if (!request.getResumeContent().isEmpty() && !request.getResumeFilename().isEmpty()) {
                 try {
@@ -208,7 +208,7 @@ public class IngestionGrpcServiceImpl extends IngestionServiceGrpc.IngestionServ
                             .build();
                 }
             }
-            
+
             var responseBuilder = IngestAllResponse.newBuilder()
                     .setSuccess(overallSuccess)
                     .setMessage(overallSuccess ? "Full ingestion completed" : "Some ingestions failed");
@@ -216,7 +216,7 @@ public class IngestionGrpcServiceImpl extends IngestionServiceGrpc.IngestionServ
             if (githubResponse != null) responseBuilder.setGithubResult(githubResponse);
             if (leetcodeResponse != null) responseBuilder.setLeetcodeResult(leetcodeResponse);
             if (resumeResponse != null) responseBuilder.setResumeResult(resumeResponse);
-            
+
             responseObserver.onNext(responseBuilder.build());
             responseObserver.onCompleted();
             log.info("gRPC: Full ingestion completed for user: {}", userId);
@@ -234,13 +234,13 @@ public class IngestionGrpcServiceImpl extends IngestionServiceGrpc.IngestionServ
     @Override
     public void healthCheck(IngestionHealthRequest request, StreamObserver<IngestionHealthResponse> responseObserver) {
         log.debug("gRPC: Health check requested by: {}", request.getServiceName());
-        
+
         var response = IngestionHealthResponse.newBuilder()
                 .setHealthy(true)
                 .setStatus("Ingestion service is healthy")
                 .setTimestamp(System.currentTimeMillis())
                 .build();
-        
+
         responseObserver.onNext(response);
         responseObserver.onCompleted();
     }
@@ -279,11 +279,11 @@ public class IngestionGrpcServiceImpl extends IngestionServiceGrpc.IngestionServ
     @Override
     public void getUserInfo(GetUserInfoRequest request, StreamObserver<GetUserInfoResponse> responseObserver) {
         log.info("gRPC: Received getUserInfo request for user: {}", request.getUserId());
-        
+
         try {
             UUID userId = UUID.fromString(request.getUserId());
             UserInfo userInfo = userInfoRepository.findById(userId).orElse(null);
-            
+
             if (userInfo == null) {
                 var response = GetUserInfoResponse.newBuilder()
                         .setSuccess(false)
@@ -293,15 +293,15 @@ public class IngestionGrpcServiceImpl extends IngestionServiceGrpc.IngestionServ
                 responseObserver.onCompleted();
                 return;
             }
-            
+
             UserInfoData userInfoData = IngestionProtoMapper.toProto(userInfo);
-            
+
             var response = GetUserInfoResponse.newBuilder()
                     .setSuccess(true)
                     .setMessage("User info retrieved successfully")
                     .setUserInfo(userInfoData)
                     .build();
-            
+
             responseObserver.onNext(response);
             responseObserver.onCompleted();
             log.info("gRPC: getUserInfo completed for user: {}", userId);
