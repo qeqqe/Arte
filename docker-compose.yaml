@@ -1,0 +1,83 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: arte-postgres
+    environment:
+      POSTGRES_DB: arte
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+    ports:
+     - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  api-core:
+    build:
+      context: ./api-core
+      dockerfile: Dockerfile
+    container_name: arte-api-core
+    ports:
+      - "8082:8082"
+      - "50051:50051"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ingestion:
+        condition: service_started
+  ingestion:
+    build:
+      context: ./ingestion
+      dockerfile: Dockerfile
+    container_name: arte-ingestion
+    ports:
+      - "8083:8083"
+      - "50052:50052"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/arte
+      SPRING_DATASOURCE_USERNAME: test
+      SPRING_DATASOURCE_PASSWORD: test
+    depends_on:
+      postgres:
+        condition: service_healthy
+  processing:
+    build:
+      context: ./processing
+      dockerfile: Dockerfile
+    container_name: arte-processing
+    ports:
+      - "8084:8084"
+      - "50053:50053"  # gRPC
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/arte
+      SPRING_DATASOURCE_USERNAME: test
+      SPRING_DATASOURCE_PASSWORD: test
+    depends_on:
+      postgres:
+        condition: service_healthy
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: arte-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8082
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - api-core
+
+volumes:
+  postgres-data:
+
+
+

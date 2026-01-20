@@ -18,7 +18,6 @@
     <url/>
 
     <modules>
-        <module>api-gateway</module>
         <module>api-core</module>
         <module>ingestion</module>
         <module>processing</module>

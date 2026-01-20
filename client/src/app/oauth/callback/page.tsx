@@ -12,18 +12,13 @@ export default function OAuthCallbackPage() {
     if (isLoading) return;
 
     if (error) {
-      // If there's an error fetching onboarding status, go back to home
       console.error("OAuth callback error:", error);
       router.push("/");
       return;
     }
 
     if (onboardingStatus) {
-      // Check if onboarding is complete
-      const isComplete =
-        onboardingStatus.githubComplete &&
-        onboardingStatus.leetcodeComplete &&
-        onboardingStatus.resumeComplete;
+      const isComplete = onboardingStatus.isOnboardingComplete;
 
       if (isComplete) {
         router.push("/dashboard");
