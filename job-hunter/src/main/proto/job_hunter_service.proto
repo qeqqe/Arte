@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.arte.jobhunter.grpc";
+option java_outer_classname = "JobHunterServiceProto";
+
+package jobhunter;
+
+service JobHunterService {
+  rpc FetchJob(FetchJobRequest) returns (FetchJobResponse);
+}
+
+message FetchJobRequest {
+  string location = 1;
+  // will contain 2-3 top picked technicalSkills from processed data
+  repeated string skills = 2;
+}
+
+message FetchJobResponse {
+  bool success = 1;
+  string message = 2;
+  repeated FetchedJobs info = 3;
+}
+
+message FetchedJobs {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+}

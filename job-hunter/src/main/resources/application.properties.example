@@ -1,0 +1,11 @@
+spring.application.name=job-hunter
+server.port=8085
+
+spring.datasource.url=jdbc:postgresql://localhost:5432/arte
+spring.datasource.username=test
+spring.datasource.password=test
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+grpc.server.port=50054
+
+searxng.instance.url=http:://localhost:8080/search
