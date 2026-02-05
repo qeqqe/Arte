@@ -91,7 +91,7 @@ public class LinkedInJobIngestionService  {
         // convert strong tags that act as headers to proper h3
         element.select("strong").forEach(strong -> {
             String text = strong.text().trim();
-            if (text.length() > 0 && !strong.parent().tagName().equals("li")) {
+            if (!text.isEmpty() && !strong.parent().tagName().equals("li")) {
                 strong.before("<h3>" + text + "</h3>");
                 strong.remove();
             }
